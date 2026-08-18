@@ -1,0 +1,16 @@
+# Node & build outputs
+node_modules/
+build/
+.svelte-kit/
+dist/
+
+# Environment & Local state
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+
+# Test & coverage
+coverage/
+.nyc_output/

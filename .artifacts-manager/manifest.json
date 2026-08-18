@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "projectName": "artifacts-manager",
+  "artifacts": [
+    {
+      "id": "artifacts-manager-topology",
+      "title": "Artifacts Manager Topology",
+      "type": "html",
+      "file": "artifacts-manager-topology.html",
+      "description": "Interactive multi-node topology explaining the central registry, SvelteKit server, sandboxed iframe rendering, and with-artifact agent skill.",
+      "tags": [
+        "architecture",
+        "topology",
+        "sveltekit",
+        "system-design"
+      ],
+      "createdAt": "2026-08-18T20:30:52.864Z",
+      "updatedAt": "2026-08-18T20:30:52.864Z"
+    },
+    {
+      "id": "with-artifact-skill-guide",
+      "title": "With-Artifact Skill Guide",
+      "type": "markdown",
+      "file": "with-artifact-guide.md",
+      "description": "Comprehensive guide and conventions for AI agents generating interactive artifacts.",
+      "tags": [
+        "guide",
+        "skills",
+        "agentic",
+        "standards"
+      ],
+      "createdAt": "2026-08-18T20:31:00.595Z",
+      "updatedAt": "2026-08-18T20:31:00.595Z"
+    }
+  ]
+}

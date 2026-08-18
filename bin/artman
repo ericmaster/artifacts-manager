@@ -1,0 +1,281 @@
+#!/usr/bin/env node
+// Spec: docs/specs/artifacts-manager-core.md
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import os from 'node:os';
+
+const REGISTRY_PATH = path.join(os.homedir(), '.artifacts-manager.json');
+
+function slugify(text) {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function expandHome(filePath) {
+  if (filePath.startsWith('~/') || filePath === '~') {
+    return path.join(os.homedir(), filePath.slice(1));
+  }
+  return path.resolve(filePath);
+}
+
+async function getRegistry() {
+  try {
+    const raw = await fs.readFile(REGISTRY_PATH, 'utf-8');
+    return JSON.parse(raw);
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      const initial = { version: '1.0.0', projects: [] };
+      await fs.writeFile(REGISTRY_PATH, JSON.stringify(initial, null, 2), 'utf-8');
+      return initial;
+    }
+    throw err;
+  }
+}
+
+async function saveRegistry(reg) {
+  await fs.writeFile(REGISTRY_PATH, JSON.stringify(reg, null, 2), 'utf-8');
+}
+
+async function getManifest(projectPath) {
+  const mPath = path.join(projectPath, '.artifacts-manager', 'manifest.json');
+  try {
+    const raw = await fs.readFile(mPath, 'utf-8');
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+async function saveManifest(projectPath, manifest) {
+  const dir = path.join(projectPath, '.artifacts-manager');
+  await fs.mkdir(dir, { recursive: true });
+  const mPath = path.join(dir, 'manifest.json');
+  await fs.writeFile(mPath, JSON.stringify(manifest, null, 2), 'utf-8');
+}
+
+function printHelp() {
+  console.log(`
+\x1b[1m\x1b[38;2;99;102;241mArtifacts Manager CLI (artman)\x1b[0m
+Central visualizer and management hub for agent-generated HTML/MD artifacts.
+
+\x1b[1mUsage:\x1b[0m
+  artman <command> [options]
+
+\x1b[1mCommands:\x1b[0m
+  \x1b[36mlist\x1b[0m                          List all registered projects and artifact counts
+  \x1b[36mregister\x1b[0m <project-path>        Register a local project directory in ~/.artifacts-manager.json
+  \x1b[36madd\x1b[0m [options]                 Add/update an artifact in a project manifest and register
+  \x1b[36mhelp\x1b[0m                          Show this help message
+
+\x1b[1mOptions for 'add':\x1b[0m
+  --project <path>              Project root directory (default: current working directory)
+  --file <filepath>             Path or filename of the artifact (e.g. topology.html)
+  --title <string>              Human-readable title for the artifact
+  --id <string>                 (Optional) Kebab-case artifact ID (defaults to slug of title)
+  --type <html|markdown>        (Optional) Artifact type: 'html' or 'markdown' (inferred from ext)
+  --desc <string>               (Optional) Short summary description of the artifact
+  --tags <tag1,tag2>            (Optional) Comma-separated tags (e.g. architecture,topology,d1)
+
+\x1b[1mExamples:\x1b[0m
+  artman register ~/products/nimblercrm
+  artman list
+  artman add --project ~/nimbler-ops \\
+             --file orchestrator-topology.html \\
+             --title "Orchestrator Topology" \\
+             --desc "Interactive diagram of orchestrator nodes" \\
+             --tags "architecture,topology,orchestrator"
+`);
+}
+
+async function handleList() {
+  const reg = await getRegistry();
+  if (reg.projects.length === 0) {
+    console.log('\x1b[33mNo projects registered yet in ~/.artifacts-manager.json\x1b[0m');
+    console.log("Run 'artman register <path>' to register a project.\n");
+    return;
+  }
+
+  console.log('\n\x1b[1mRegistered Projects:\x1b[0m');
+  console.log('═'.repeat(75));
+
+  for (const p of reg.projects) {
+    const fullPath = expandHome(p.path);
+    let exists = false;
+    try {
+      const s = await fs.stat(fullPath);
+      exists = s.isDirectory();
+    } catch {
+      exists = false;
+    }
+
+    const manifest = exists ? await getManifest(fullPath) : null;
+    const count = manifest?.artifacts?.length || 0;
+    const status = !exists ? '\x1b[31m[NOT FOUND]\x1b[0m' : '\x1b[32m[ACTIVE]\x1b[0m';
+    const slug = slugify(p.name || path.basename(fullPath));
+
+    console.log(`${status} \x1b[1m${p.name}\x1b[0m (\x1b[36m${slug}\x1b[0m)`);
+    console.log(`   Path:      ${fullPath}`);
+    console.log(`   Artifacts: ${count} item(s)`);
+    console.log(`   Viewer:    http://localhost:41820/project/${slug}`);
+    console.log('─'.repeat(75));
+  }
+  console.log();
+}
+
+async function handleRegister(projectPath, customName) {
+  if (!projectPath) {
+    console.error('\x1b[31mError: Project path required. Run: artman register <path>\x1b[0m');
+    process.exit(1);
+  }
+
+  const fullPath = expandHome(projectPath);
+  try {
+    const stat = await fs.stat(fullPath);
+    if (!stat.isDirectory()) {
+      console.error(`\x1b[31mError: '${fullPath}' is not a directory.\x1b[0m`);
+      process.exit(1);
+    }
+  } catch (err) {
+    console.warn(`\x1b[33mWarning: Directory '${fullPath}' does not exist on disk right now.\x1b[0m`);
+  }
+
+  const reg = await getRegistry();
+  const manifest = await getManifest(fullPath);
+  const name = customName || manifest?.projectName || path.basename(fullPath);
+  const now = new Date().toISOString();
+
+  const idx = reg.projects.findIndex(p => expandHome(p.path) === fullPath);
+  if (idx >= 0) {
+    reg.projects[idx].name = name;
+    reg.projects[idx].lastActiveAt = now;
+    console.log(`\x1b[32m✓ Updated registered project:\x1b[0m \x1b[1m${name}\x1b[0m at ${fullPath}`);
+  } else {
+    reg.projects.push({
+      name,
+      path: fullPath,
+      registeredAt: now,
+      lastActiveAt: now
+    });
+    console.log(`\x1b[32m✓ Registered new project:\x1b[0m \x1b[1m${name}\x1b[0m at ${fullPath}`);
+  }
+
+  await saveRegistry(reg);
+  const slug = slugify(name);
+  console.log(`\x1b[36mViewer URL:\x1b[0m http://localhost:41820/project/${slug}\n`);
+}
+
+async function handleAdd(args) {
+  let projectPath = process.cwd();
+  let file = '';
+  let title = '';
+  let id = '';
+  let type = '';
+  let desc = '';
+  let tags = [];
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === '--project') projectPath = args[++i];
+    else if (arg === '--file') file = args[++i];
+    else if (arg === '--title') title = args[++i];
+    else if (arg === '--id') id = args[++i];
+    else if (arg === '--type') type = args[++i];
+    else if (arg === '--desc' || arg === '--description') desc = args[++i];
+    else if (arg === '--tags') tags = args[++i].split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+  }
+
+  if (!file || !title) {
+    console.error('\x1b[31mError: Both --file and --title are required for artman add\x1b[0m');
+    console.error('Example: artman add --file topology.html --title "System Topology" --tags "architecture,system"');
+    process.exit(1);
+  }
+
+  const fullProjectPath = expandHome(projectPath);
+  const artifactsDir = path.join(fullProjectPath, '.artifacts-manager');
+  await fs.mkdir(artifactsDir, { recursive: true });
+
+  const fileName = path.basename(file);
+  const ext = path.extname(fileName).toLowerCase();
+  const inferredType = type || (ext === '.md' ? 'markdown' : 'html');
+  const artifactId = id || slugify(title);
+
+  // If source file is specified as an outside path, copy it into .artifacts-manager
+  const fullTargetFilePath = path.join(artifactsDir, fileName);
+  if (path.resolve(file) !== fullTargetFilePath) {
+    try {
+      if (await fs.stat(file).then(s => s.isFile()).catch(() => false)) {
+        await fs.copyFile(file, fullTargetFilePath);
+      }
+    } catch {
+      // file may be created directly
+    }
+  }
+
+  let manifest = await getManifest(fullProjectPath);
+  if (!manifest) {
+    manifest = {
+      version: '1.0.0',
+      projectName: path.basename(fullProjectPath),
+      artifacts: []
+    };
+  }
+
+  const now = new Date().toISOString();
+  const existingArtIdx = manifest.artifacts.findIndex(a => a.id === artifactId || a.file === fileName);
+
+  const artifactMeta = {
+    id: artifactId,
+    title,
+    type: inferredType,
+    file: fileName,
+    description: desc,
+    tags,
+    createdAt: existingArtIdx >= 0 ? manifest.artifacts[existingArtIdx].createdAt : now,
+    updatedAt: now
+  };
+
+  if (existingArtIdx >= 0) {
+    manifest.artifacts[existingArtIdx] = artifactMeta;
+    console.log(`\x1b[32m✓ Updated artifact:\x1b[0m \x1b[1m${title}\x1b[0m (${fileName})`);
+  } else {
+    manifest.artifacts.push(artifactMeta);
+    console.log(`\x1b[32m✓ Added artifact:\x1b[0m \x1b[1m${title}\x1b[0m (${fileName})`);
+  }
+
+  await saveManifest(fullProjectPath, manifest);
+  await handleRegister(fullProjectPath, manifest.projectName);
+
+  const projSlug = slugify(manifest.projectName || path.basename(fullProjectPath));
+  console.log(`\x1b[1m\x1b[35mArtifact URL:\x1b[0m http://localhost:41820/project/${projSlug}/artifact/${artifactId}\n`);
+}
+
+async function main() {
+  const args = process.argv.slice(2);
+  const cmd = args[0];
+
+  if (!cmd || cmd === '--help' || cmd === '-h' || cmd === 'help') {
+    printHelp();
+    return;
+  }
+
+  if (cmd === 'list' || cmd === 'ls') {
+    await handleList();
+  } else if (cmd === 'register') {
+    await handleRegister(args[1], args[2]);
+  } else if (cmd === 'add') {
+    await handleAdd(args.slice(1));
+  } else {
+    console.error(`\x1b[31mUnknown command: ${cmd}\x1b[0m`);
+    printHelp();
+    process.exit(1);
+  }
+}
+
+main().catch(err => {
+  console.error('\x1b[31mFatal CLI error:\x1b[0m', err);
+  process.exit(1);
+});
