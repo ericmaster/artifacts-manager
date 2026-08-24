@@ -113,5 +113,5 @@ Registers or updates a repository path in `~/.artifacts-manager.json`.
    - Breadcrumb navigation: `Projects / <Project Name> / <Artifact Title>`.
    - Action toolbar: Resolution presets (Desktop 100%, Tablet 768px, Mobile 375px), Open Raw in New Tab, Copy Link, View Source toggle.
    - HTML rendering: Sandboxed `<iframe>` for isolation and script safety.
-    - Markdown rendering: server-sanitized typography and code, then client-only strict Mermaid rendering. Mermaid source remains escaped and readable on CDN or render failure; SVG, event handlers, unsafe URLs, and raw HTML are excluded from the insertion boundary.
+    - Markdown rendering: `src/lib/server/markdown.ts` parses Markdown and applies `sanitize-html` at the `{@html}` insertion boundary. Its explicit tag and attribute allowlist permits `class`, `data-*`, `href`, and `src`; URLs are limited to `http`, `https`, `mailto`, and relative paths. SVG, event handlers, unsafe URLs, and raw HTML are excluded. Client-only strict Mermaid rendering keeps source escaped and readable on CDN or render failure.
    - Collapsible metadata sidebar.
