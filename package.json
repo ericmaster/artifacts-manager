@@ -25,6 +25,7 @@
     "@types/prismjs": "^1.26.6",
     "lucide-svelte": "^0.475.0",
     "marked": "^15.0.7",
+    "playwright": "^1.57.0",
     "prismjs": "^1.29.0",
     "svelte": "^5.19.9",
     "svelte-check": "^4.1.4",
