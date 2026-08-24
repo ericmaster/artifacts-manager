@@ -22,7 +22,7 @@ Artifacts are saved inside the current repository under `.artifacts-manager/`, c
 HTML is the preferred default. It allows rich vector diagrams, clickable interactive nodes, responsive tabs, and animated state simulators that text alone cannot provide.
 
 **Design Guidelines (Nimblersoft Dark Design System):**
-1. **Self-Contained:** Place all styling inside `<style>` and all interactive logic inside `<script>`. Do not require external network assets.
+1. **Runtime contract:** Include exactly `<script src="https://cdn.tailwindcss.com/3.4.17"></script>` and Mermaid from `https://cdn.jsdelivr.net/npm/mermaid@11.17.1/dist/mermaid.esm.min.mjs`; keep all other logic local.
 2. **Palette & Dark Mode:**
    - Background: Deep slate/dark `#090d16` or `#0f172a`
    - Card/Surface: Elevated `#131b2e` or `rgba(18, 26, 43, 0.8)` with subtle border `rgba(255, 255, 255, 0.08)`
@@ -31,7 +31,8 @@ HTML is the preferred default. It allows rich vector diagrams, clickable interac
 3. **Interactivity:**
    - Clickable components: clicking a node or card opens an inspector panel showing implementation details, code snippets, or configuration.
    - Tabbed views: e.g. `[Topology Map]`, `[Data Flow]`, `[Component Breakdown]`, `[Source Code]`.
-   - SVG diagrams: vector paths with glowing borders, hover tooltips, and clear directional arrows.
+    - Use Mermaid for graph-shaped diagrams with escaped `pre.mermaid[data-mermaid-source]` fallback. HTML Mermaid may use `securityLevel: 'loose'` only for named, allowlisted local inspector callbacks; labels contain no arbitrary HTML.
+    - Use Tailwind utilities for routine layout; retain custom CSS only for Mermaid sizing or specialized visuals.
 
 ---
 
@@ -91,7 +92,8 @@ You can either run the CLI helper:
 
 Or write/update `<project-root>/.artifacts-manager/manifest.json` and ensure `<project-root>` is in `~/.artifacts-manager.json`.
 
-### Step 4: Share Direct Link with User
+### Step 4: Preserve Metadata and Share Direct Link
+Preserve an existing artifact's `id`, `file`, and `createdAt`; update only `updatedAt` and relevant lowercase tags such as `tailwind` and `mermaid`.
 In your response, provide the direct URL to inspect the artifact:
 `http://localhost:41820/project/<projectSlug>/artifact/<artifactId>`
 
@@ -108,6 +110,7 @@ Use this starter template for creating high-impact interactive artifacts:
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Architecture Topology</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <style>
     :root {
       --bg: #090d16;

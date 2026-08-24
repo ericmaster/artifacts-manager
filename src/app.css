@@ -301,6 +301,24 @@ button {
   font-size: 0.9rem;
 }
 
+.markdown-body pre.mermaid {
+  overflow-x: auto;
+  min-height: 2.5rem;
+}
+
+.markdown-body pre.mermaid svg {
+  display: block;
+  max-width: none;
+  min-width: 100%;
+}
+
+.mermaid-render-error,
+.markdown-error {
+  margin: -0.75rem 0 1.25rem;
+  color: #fda4af;
+  font-size: 0.875rem;
+}
+
 .markdown-body blockquote {
   border-left: 3px solid var(--accent-indigo);
   background: rgba(99, 102, 241, 0.05);

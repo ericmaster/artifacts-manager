@@ -16,6 +16,7 @@ document's home is ambiguous, and apply the frontmatter from §4.
 ## Decisions
 
 * [ADR-0001: Architecture, Storage Model & SvelteKit Stack](adr/0001-architecture-and-stack.md) — SvelteKit + Node adapter, standalone HTML sandboxed iframe rendering, and central registry contract.
+* [ADR-0002: Versioned Tailwind and Mermaid Artifact Contract](adr/0002-mermaid-artifact-contract.md) — Versioned artifact runtimes, Mermaid fallback, and Markdown sanitization boundary.
 
 ## Specs
 

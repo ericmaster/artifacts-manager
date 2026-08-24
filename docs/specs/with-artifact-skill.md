@@ -26,7 +26,7 @@ The `with-artifact` skill instructs an AI coding agent to generate an explanator
 ## 2. Artifact Standards
 
 ### A. HTML Artifacts (Default & Recommended for Visuals)
-- **Standalone:** Must be completely self-contained in a single file with embedded `<style>` and `<script>` (or inline SVGs).
+- **Runtime contract:** Include exact Tailwind `https://cdn.tailwindcss.com/3.4.17` and Mermaid `https://cdn.jsdelivr.net/npm/mermaid@11.17.1/dist/mermaid.esm.min.mjs`; keep all other logic local.
 - **Design System:** Follows the Nimblersoft Dark/Agentic palette:
   - Deep dark background (`#0a0d14` / `#0f172a`)
   - Elevated surfaces (`#1e293b` / `rgba(30, 41, 59, 0.7)`)
@@ -34,7 +34,7 @@ The `with-artifact` skill instructs an AI coding agent to generate an explanator
   - Clear typography (`system-ui`, `-apple-system`, `sans-serif`)
 - **Interactivity:** Includes interactive elements such as:
   - Clickable node cards that expand details or inspect code.
-  - Interactive SVG diagrams with hover highlights, tooltips, and zoom/pan.
+  - Mermaid source for graph-shaped diagrams with `pre.mermaid[data-mermaid-source]` fallback. HTML Mermaid may use `securityLevel: 'loose'` only for named allowlisted local inspector callbacks; labels contain no arbitrary HTML.
   - Tabbed sections (e.g. "Overview", "Sequence", "Component Map", "Data Flow").
   - Animated state transitions or step-by-step walkthrough buttons.
 
@@ -55,7 +55,7 @@ When creating an artifact:
    - `description`: concise summary
    - `tags`: lowercase tag list (e.g. `["architecture", "database", "svelte"]`)
    - `createdAt`: ISO timestamp
-   - `updatedAt`: ISO timestamp
+    - `updatedAt`: ISO timestamp; preserve existing `id`, `file`, and `createdAt`, updating only this timestamp and relevant lowercase tags during migration.
 3. Register `<project-root>` in `~/.artifacts-manager.json` if not already present.
 4. Output a clickable URL for the user to open the artifact in the `artifacts-manager` web app:
    `http://localhost:41820/project/<projectSlug>/artifact/<artifactId>`

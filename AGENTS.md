@@ -39,7 +39,7 @@ src/
         ├── raw/[projectSlug]/[...file]/+server.ts # Raw static asset/artifact file server
         └── register/+server.ts      # Project registration endpoint
 docs/
-├── adr/                             # Architectural decisions (ADR-0001)
+├── adr/                             # Architectural decisions (ADR-0001, ADR-0002)
 ├── specs/                           # Subsystem specs (core, with-artifact skill)
 └── runbooks/                        # Command recipes (local-development)
 ```
@@ -67,7 +67,8 @@ npm run dev
 
 - **Zero-DB File System Contracts.** All state is persisted either in `~/.artifacts-manager.json` (central registry) or in `<project>/.artifacts-manager/manifest.json` (project-scoped artifacts catalog). Decision record: `docs/adr/0001-architecture-and-stack.md`. Spec: `docs/specs/artifacts-manager-core.md`.
 - **Iframe Sandboxing.** HTML artifacts are served from `/api/raw/[projectSlug]/[...file]` and rendered inside an isolated `<iframe>` to prevent script execution leaks, global variable collisions, and CSS pollution.
-- **Markdown Rendering.** Markdown files are rendered client-side/SSR using `marked` with `prismjs` syntax highlighting and full GitHub Alerts formatting.
+- **Markdown Rendering.** Markdown is sanitized server-side after `marked`; Mermaid fences render client-only with strict security and readable escaped fallback source.
+- **Artifact Runtime Contract.** HTML artifacts use Tailwind `3.4.17` and Mermaid `11.17.1` from the exact CDN URLs in ADR-0002. Preserve artifact IDs/files/createdAt during migrations.
 - **Port Allocation.** Fixed to port `41820` to integrate cleanly into the local development fleet.
 
 ## Data model
@@ -88,6 +89,8 @@ Type checking and build verification:
 ```bash
 npm run check
 npm run build
+npm run test:unit
+npm run test:e2e
 ```
 
 ## Deployment

@@ -1,289 +1,69 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Artifacts Manager Architecture</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Artifacts Manager Topology</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <style>
-    :root {
-      --bg: #090d16;
-      --card: #131b2e;
-      --card-hover: #1a253e;
-      --border: rgba(255, 255, 255, 0.08);
-      --border-active: rgba(99, 102, 241, 0.5);
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --indigo: #6366f1;
-      --cyan: #06b6d4;
-      --emerald: #10b981;
-      --amber: #f59e0b;
-      --mono: ui-monospace, SFMono-Regular, monospace;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      padding: 2rem;
-      min-height: 100vh;
-      background-image: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.12), transparent 50%);
-    }
-    .header { margin-bottom: 2rem; }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.25rem 0.75rem;
-      border-radius: 9999px;
-      background: rgba(99, 102, 241, 0.15);
-      border: 1px solid rgba(99, 102, 241, 0.3);
-      color: #818cf8;
-      font-size: 0.75rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-    h1 { font-size: 1.85rem; font-weight: 700; margin-bottom: 0.5rem; }
-    p.sub { color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; }
-
-    .main-grid {
-      display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 1.5rem;
-    }
-    @media (max-width: 1000px) {
-      .main-grid { grid-template-columns: 1fr; }
-    }
-
-    .canvas-panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .canvas-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--cyan);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .topology-flow {
-      display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
-    }
-
-    .layer-group {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-    .layer-name {
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-    }
-
-    .nodes-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 0.75rem;
-    }
-
-    .node {
-      background: rgba(15, 23, 42, 0.6);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.85rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      position: relative;
-    }
-    .node:hover {
-      background: var(--card-hover);
-      border-color: var(--indigo);
-      transform: translateY(-2px);
-    }
-    .node.active {
-      border-color: var(--cyan);
-      background: rgba(6, 182, 212, 0.1);
-      box-shadow: 0 0 20px -3px rgba(6, 182, 212, 0.3);
-    }
-    .node h4 { font-size: 0.95rem; margin-bottom: 0.25rem; }
-    .node span { font-size: 0.75rem; color: var(--text-muted); }
-
-    /* Side detail panel */
-    .detail-panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-    .detail-panel h3 { font-size: 1.25rem; color: var(--cyan); }
-    .detail-tag {
-      display: inline-block;
-      font-size: 0.7rem;
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      background: rgba(6, 182, 212, 0.15);
-      color: var(--cyan);
-      font-family: var(--mono);
-      width: fit-content;
-    }
-    .detail-body { font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; }
-    .code-box {
-      background: #090d16;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.75rem;
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      color: #e2e8f0;
-      overflow-x: auto;
-      margin-top: 0.5rem;
-    }
+    .mermaid { overflow-x: auto; }
+    .mermaid svg { min-width: 720px; max-width: none; }
   </style>
 </head>
-<body>
-  <header class="header">
-    <div class="badge">⚡ Interactive Architecture Map</div>
-    <h1>Artifacts Manager Architecture</h1>
-    <p class="sub">Click on any subsystem node to inspect data contracts, filesystem paths, and responsibilities.</p>
-  </header>
-
-  <div class="main-grid">
-    <div class="canvas-panel">
-      <div class="canvas-title">System Topology & Data Flow</div>
-
-      <div class="topology-flow">
-        <!-- Layer 1: Agent & Harnesses -->
-        <div class="layer-group">
-          <div class="layer-name">1. Generation & Agent Layer</div>
-          <div class="nodes-row">
-            <div class="node active" onclick="show('agent')">
-              <h4>with-artifact Skill</h4>
-              <span>Prompt & Protocol</span>
-            </div>
-            <div class="node" onclick="show('cli')">
-              <h4>artman CLI</h4>
-              <span>Registration Helper</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Layer 2: Persistence -->
-        <div class="layer-group">
-          <div class="layer-name">2. Storage & Manifest Contracts</div>
-          <div class="nodes-row">
-            <div class="node" onclick="show('registry')">
-              <h4>Central Registry</h4>
-              <span>~/.artifacts-manager.json</span>
-            </div>
-            <div class="node" onclick="show('manifest')">
-              <h4>Project Manifest</h4>
-              <span>.artifacts-manager/manifest.json</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Layer 3: Web Server & Viewer -->
-        <div class="layer-group">
-          <div class="layer-name">3. Server & Interactive Viewer</div>
-          <div class="nodes-row">
-            <div class="node" onclick="show('server')">
-              <h4>SvelteKit Server</h4>
-              <span>Port 41820 API Routes</span>
-            </div>
-            <div class="node" onclick="show('sandbox')">
-              <h4>Sandboxed Iframe</h4>
-              <span>Isolated HTML Rendering</span>
-            </div>
-          </div>
-        </div>
+<body class="min-h-screen bg-slate-950 p-6 font-sans text-slate-100">
+  <main class="mx-auto max-w-6xl">
+    <header class="mb-6">
+      <p class="mb-2 inline-flex rounded-full border border-indigo-400/30 bg-indigo-400/10 px-3 py-1 text-xs font-semibold text-indigo-300">Interactive Architecture Map</p>
+      <h1 class="text-3xl font-bold">Artifacts Manager Topology</h1>
+      <p class="mt-2 text-slate-400">Select a graph node to inspect its contract and responsibility.</p>
+    </header>
+    <section class="grid gap-6 lg:grid-cols-[1fr_22rem]">
+      <div class="rounded-2xl border border-white/10 bg-slate-900 p-6 shadow-xl">
+        <h2 class="mb-4 text-lg font-semibold text-cyan-300">System topology and data flow</h2>
+        <pre class="mermaid" data-mermaid-source="flowchart TB
+  agent[with-artifact Skill] --> manifest[Project Manifest]
+  cli[artman CLI] --> registry[Central Registry]
+  manifest --> server[SvelteKit Server]
+  registry --> server
+  server --> sandbox[Sandboxed Iframe]">flowchart TB
+  agent[with-artifact Skill] --> manifest[Project Manifest]
+  cli[artman CLI] --> registry[Central Registry]
+  manifest --> server[SvelteKit Server]
+  registry --> server
+  server --> sandbox[Sandboxed Iframe]</pre>
       </div>
-    </div>
-
-    <!-- Detail Pane -->
-    <aside class="detail-panel">
-      <h3 id="panel-title">with-artifact Skill</h3>
-      <span class="detail-tag" id="panel-tag">skills/with-artifact/SKILL.md</span>
-      <p class="detail-body" id="panel-desc">
-        Standardized agent prompt and execution protocol. Instructs AI coding agents across harnesses (Antigravity, Kilo, Claude) to build standalone interactive visualizers when explaining architectures, topologies, and complex changes.
-      </p>
-      <div class="code-box" id="panel-code">
-artman add --file topology.html \
-  --title "System Architecture" \
-  --tags "architecture,sveltekit"
-      </div>
-    </aside>
-  </div>
-
-  <script>
-    const nodes = {
-      agent: {
-        title: 'with-artifact Skill',
-        tag: 'skills/with-artifact/SKILL.md',
-        desc: 'Standardized agent prompt and execution protocol. Instructs AI coding agents across harnesses (Antigravity, Kilo, Claude) to build standalone interactive visualizers when explaining architectures, topologies, and complex changes.',
-        code: 'artman add --file topology.html \\\n  --title "System Architecture" \\\n  --tags "architecture,sveltekit"'
-      },
-      cli: {
-        title: 'artman CLI Helper',
-        tag: 'bin/artman',
-        desc: 'Node.js command-line interface for registering workspaces, updating catalogs, and listing artifacts directly from the terminal or shell scripts.',
-        code: './bin/artman list\n./bin/artman register /home/ericmaster/nimbler-ops'
-      },
-      registry: {
-        title: 'Central Registry (~/.artifacts-manager.json)',
-        tag: 'OS Home Directory State',
-        desc: 'Lightweight JSON store mapping all tracked repository paths on the local machine with last-active timestamps and discovery metadata.',
-        code: '{\n  "version": "1.0.0",\n  "projects": [\n    {\n      "name": "nimblercrm",\n      "path": "/home/ericmaster/products/nimblercrm"\n    }\n  ]\n}'
-      },
-      manifest: {
-        title: 'Project Manifest (.artifacts-manager/manifest.json)',
-        tag: '<project>/.artifacts-manager/manifest.json',
-        desc: 'Catalog of artifacts in a given project repository with IDs, titles, types (HTML/MD), tags, descriptions, and timestamps.',
-        code: '{\n  "version": "1.0.0",\n  "projectName": "nimblercrm",\n  "artifacts": [\n    { "id": "db-schema", "type": "html", "file": "db.html" }\n  ]\n}'
-      },
-      server: {
-        title: 'SvelteKit Web Server',
-        tag: 'http://localhost:41820',
-        desc: 'Lightweight Node/SvelteKit server hosting the project dashboard, search filter engine, tag cloud, and REST endpoints for raw file serving.',
-        code: 'GET /api/projects\nGET /api/projects/:slug\nGET /api/raw/:slug/:file'
-      },
-      sandbox: {
-        title: 'Sandboxed Iframe Viewer',
-        tag: 'src/routes/project/.../artifact/...',
-        desc: 'Isolated iframe container enabling arbitrary interactive JavaScript, SVGs, zoom/pan libraries, and custom styling without polluting or colliding with the host dashboard.',
-        code: '<iframe src="/api/raw/nimbler-ops/topology.html"\n  sandbox="allow-scripts allow-same-origin"\n/>'
-      }
+      <aside class="rounded-2xl border border-white/10 bg-slate-900 p-6">
+        <p class="text-xs font-semibold uppercase tracking-wider text-cyan-300">Inspector</p>
+        <h2 id="panel-title" class="mt-3 text-xl font-semibold">Select a node</h2>
+        <p id="panel-desc" class="mt-3 text-sm leading-6 text-slate-400">Click a Mermaid node to view its local contract.</p>
+        <code id="panel-code" class="mt-4 block overflow-x-auto rounded-lg bg-slate-950 p-3 text-xs text-slate-300">No selection</code>
+      </aside>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.17.1/dist/mermaid.esm.min.mjs';
+    const details = {
+      agent: ['with-artifact Skill', 'Agent guidance for generating and registering explainable artifacts.', 'skills/with-artifact/SKILL.md'],
+      cli: ['artman CLI', 'Registers projects and maintains artifact manifests.', 'bin/artman'],
+      manifest: ['Project Manifest', 'Project-local artifact metadata and filenames.', '.artifacts-manager/manifest.json'],
+      registry: ['Central Registry', 'Machine-local list of registered projects.', '~/.artifacts-manager.json'],
+      server: ['SvelteKit Server', 'Reads manifests and serves viewer routes and raw artifacts.', 'src/lib/server/registry.ts'],
+      sandbox: ['Sandboxed Iframe', 'Isolates interactive HTML artifacts from the manager UI.', 'sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-downloads"']
     };
-
-    function show(id) {
-      document.querySelectorAll('.node').forEach(el => el.classList.remove('active'));
-      event.currentTarget.classList.add('active');
-      const item = nodes[id];
-      if (item) {
-        document.getElementById('panel-title').innerText = item.title;
-        document.getElementById('panel-tag').innerText = item.tag;
-        document.getElementById('panel-desc').innerText = item.desc;
-        document.getElementById('panel-code').innerText = item.code;
-      }
-    }
+    window.showInspector = (id) => {
+      const item = details[id];
+      if (!item) return;
+      document.querySelector('#panel-title').textContent = item[0];
+      document.querySelector('#panel-desc').textContent = item[1];
+      document.querySelector('#panel-code').textContent = item[2];
+    };
+    mermaid.initialize({ startOnLoad: false, securityLevel: 'loose', theme: 'dark', flowchart: { htmlLabels: false } });
+    await mermaid.run({ querySelector: '.mermaid' });
+    document.querySelector('.mermaid').addEventListener('click', (event) => {
+      const node = event.target.closest('g.node');
+      const id = node?.id.replace(/^.*flowchart-/, '').replace(/-\d+$/, '');
+      if (id) window.showInspector(id);
+    });
   </script>
 </body>
 </html>

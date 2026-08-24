@@ -12,10 +12,12 @@
         "architecture",
         "topology",
         "sveltekit",
-        "system-design"
+        "system-design",
+        "tailwind",
+        "mermaid"
       ],
       "createdAt": "2026-08-18T20:30:52.864Z",
-      "updatedAt": "2026-08-18T20:30:52.864Z"
+      "updatedAt": "2026-08-24T00:00:00.000Z"
     },
     {
       "id": "with-artifact-skill-guide",
@@ -27,10 +29,11 @@
         "guide",
         "skills",
         "agentic",
-        "standards"
+        "standards",
+        "mermaid"
       ],
       "createdAt": "2026-08-18T20:31:00.595Z",
-      "updatedAt": "2026-08-18T20:31:00.595Z"
+      "updatedAt": "2026-08-24T00:00:00.000Z"
     }
   ]
 }

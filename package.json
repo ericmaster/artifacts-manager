@@ -13,7 +13,9 @@
     "build": "vite build",
     "preview": "vite preview --port 41820 --host",
     "start": "PORT=41820 ARTMAN_PORT=41820 node build/index.js",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json"
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "test:unit": "node --experimental-vm-modules --test tests/unit/**/*.test.mjs",
+    "test:e2e": "node --test tests/e2e/**/*.test.mjs"
   },
   "devDependencies": {
     "@sveltejs/adapter-node": "^5.2.12",

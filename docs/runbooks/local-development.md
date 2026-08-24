@@ -24,6 +24,10 @@ npm run build
 npm run preview
 # or
 node build/index.js
+
+# Run Markdown and browser regression suites
+npm run test:unit
+npm run test:e2e
 ```
 
 ## 2. CLI Tool Usage (`artman` / `artifacts-manager`)
@@ -55,3 +59,4 @@ The repo ships with a CLI helper in `./bin/artman`:
 2. Open in browser: `http://localhost:41820`
 3. Click on any project card to inspect its artifacts index.
 4. Click on an artifact entry to view the interactive iframe or rendered Markdown.
+5. For Mermaid Markdown, verify the SVG at desktop and 375px. Block the Mermaid CDN once and confirm the escaped source plus generic alert remains readable.

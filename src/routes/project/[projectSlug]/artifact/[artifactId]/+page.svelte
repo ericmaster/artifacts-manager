@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import type { PageData } from './$types';
   import { 
     ChevronLeft, 
@@ -25,6 +26,94 @@
   let showMetadata = $state(false);
   let copiedLink = $state(false);
   let iframeKey = $state(0);
+  let markdownRoot = $state<HTMLElement | undefined>();
+  const mermaidUrl = 'https://cdn.jsdelivr.net/npm/mermaid@11.17.1/dist/mermaid.esm.min.mjs';
+  const mermaidError = 'Diagram unavailable. The Mermaid source is shown below.';
+  type MermaidModule = {
+    default: {
+      initialize: (config: Record<string, unknown>) => void;
+      render: (id: string, source: string) => Promise<{ svg: string }>;
+    };
+  };
+
+  function resetMermaidFallbacks(root: HTMLElement) {
+    for (const diagram of root.querySelectorAll<HTMLElement>('pre.mermaid[data-mermaid-source]')) {
+      const source = diagram.dataset.mermaidSource ?? '';
+      const code = document.createElement('code');
+      code.textContent = source;
+      diagram.replaceChildren(code);
+      diagram.removeAttribute('data-mermaid-state');
+      diagram.removeAttribute('aria-busy');
+    }
+    root.querySelectorAll('.mermaid-render-error').forEach((marker) => marker.remove());
+  }
+
+  function showMermaidError(diagram: HTMLElement) {
+    diagram.dataset.mermaidState = 'error';
+    diagram.setAttribute('role', 'alert');
+    const marker = document.createElement('p');
+    marker.className = 'mermaid-render-error';
+    marker.setAttribute('role', 'alert');
+    marker.textContent = mermaidError;
+    diagram.insertAdjacentElement('afterend', marker);
+  }
+
+  onMount(() => {
+    let renderVersion = 0;
+    let loading: Promise<MermaidModule> | undefined;
+    let renderedSignature = '';
+
+    const renderDiagrams = async () => {
+      const root = markdownRoot;
+      if (!root || data.artifact.type !== 'markdown') return;
+      const version = ++renderVersion;
+      resetMermaidFallbacks(root);
+      const diagrams = [...root.querySelectorAll<HTMLElement>('pre.mermaid[data-mermaid-source]')];
+      renderedSignature = `${data.artifact.id}:${diagrams.map((diagram) => diagram.dataset.mermaidSource).join('\u0000')}`;
+      if (!diagrams.length) return;
+
+      try {
+        loading ??= import(/* @vite-ignore */ mermaidUrl);
+        const module = await loading;
+        if (version !== renderVersion || !root.isConnected) return;
+        module.default.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'dark', flowchart: { htmlLabels: false } });
+
+        for (const [index, diagram] of diagrams.entries()) {
+          if (version !== renderVersion || !diagram.isConnected) return;
+          diagram.setAttribute('aria-busy', 'true');
+          try {
+            const { svg } = await module.default.render(`mermaid-${data.artifact.id}-${index}`, diagram.dataset.mermaidSource ?? '');
+            if (version !== renderVersion || !diagram.isConnected) return;
+            diagram.innerHTML = svg;
+            diagram.dataset.mermaidState = 'rendered';
+            diagram.removeAttribute('role');
+          } catch {
+            if (version !== renderVersion || !diagram.isConnected) return;
+            showMermaidError(diagram);
+          } finally {
+            diagram.removeAttribute('aria-busy');
+          }
+        }
+      } catch {
+        if (version !== renderVersion || !root.isConnected) return;
+        diagrams.forEach(showMermaidError);
+      }
+    };
+
+    const observer = new MutationObserver(() => {
+      const root = markdownRoot;
+      const signature = root
+        ? `${data.artifact.id}:${[...root.querySelectorAll<HTMLElement>('pre.mermaid[data-mermaid-source]')].map((diagram) => diagram.dataset.mermaidSource).join('\u0000')}`
+        : '';
+      if (signature !== renderedSignature) void renderDiagrams();
+    });
+    if (markdownRoot) observer.observe(markdownRoot, { childList: true });
+    void renderDiagrams();
+    return () => {
+      renderVersion += 1;
+      observer.disconnect();
+    };
+  });
 
   function reloadIframe() {
     iframeKey += 1;
@@ -200,7 +289,7 @@
       {:else}
         <!-- Markdown Rendered View -->
         <div class="markdown-container glass-panel">
-          <article class="markdown-body">
+          <article class="markdown-body" bind:this={markdownRoot}>
             {@html data.renderedHtml}
           </article>
         </div>

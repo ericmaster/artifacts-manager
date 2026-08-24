@@ -2,20 +2,7 @@
 import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { getArtifact } from '$lib/server/registry';
-import { marked } from 'marked';
-import Prism from 'prismjs';
-import 'prismjs/components/prism-typescript.js';
-import 'prismjs/components/prism-javascript.js';
-import 'prismjs/components/prism-json.js';
-import 'prismjs/components/prism-bash.js';
-import 'prismjs/components/prism-css.js';
-import 'prismjs/components/prism-sql.js';
-
-// Configure marked with syntax highlighting
-marked.setOptions({
-  gfm: true,
-  breaks: true
-});
+import { renderMarkdown } from '$lib/server/markdown';
 
 export const load: PageServerLoad = async ({ params }) => {
   const { projectSlug, artifactId } = params;
@@ -30,11 +17,7 @@ export const load: PageServerLoad = async ({ params }) => {
 
   let renderedHtml = '';
   if (artifact.type === 'markdown' && artifact.rawContent) {
-    try {
-      renderedHtml = await marked.parse(artifact.rawContent);
-    } catch (err: any) {
-      renderedHtml = `<p class="error">Failed to parse markdown: ${err.message}</p>`;
-    }
+    renderedHtml = await renderMarkdown(artifact.rawContent);
   }
 
   return {
