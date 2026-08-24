@@ -62,6 +62,7 @@ npm run dev
 | `npm run check` | Run TypeScript & SvelteKit type checks (`svelte-check`) |
 | `./bin/artman list` | List all registered projects from CLI |
 | `./bin/artman register <path>` | Register a local project directory into `~/.artifacts-manager.json` |
+| `./bin/artman validate --all` | Read-only validation of registered artifact contracts |
 
 ## Architecture at a glance
 
@@ -69,6 +70,7 @@ npm run dev
 - **Iframe Sandboxing.** HTML artifacts are served from `/api/raw/[projectSlug]/[...file]` and rendered inside an isolated `<iframe>` to prevent script execution leaks, global variable collisions, and CSS pollution.
 - **Markdown Rendering.** Markdown is sanitized server-side after `marked`; Mermaid fences render client-only with strict security and readable escaped fallback source.
 - **Artifact Runtime Contract.** HTML artifacts use Tailwind `3.4.17` and Mermaid `11.17.1` from the exact CDN URLs in ADR-0002. Preserve artifact IDs/files/createdAt during migrations.
+- **Validation.** `artman validate` never writes and reports manifest containment/currentness, runtime URLs, Mermaid fallback source, migration identity, and narrow legacy static-SVG warnings. `vespera:kth-irl-self-evaluation` allowlists only `canvas#radar` plus decorative icon SVGs.
 - **Port Allocation.** Fixed to port `41820` to integrate cleanly into the local development fleet.
 
 ## Data model

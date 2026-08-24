@@ -70,6 +70,12 @@ Each registered repository contains an `.artifacts-manager/` folder storing its 
 3. `file` is relative to `<project-root>/.artifacts-manager/`.
 4. `tags` is an array of lowercase strings used for multi-faceted filtering.
 
+### Read-only validation
+
+`./bin/artman validate --all` validates every project in the existing central registry without writing the registry, manifests, or artifact files. `./bin/artman validate --project <path>` validates one project. It rejects manifest path escapes, missing or stale catalog entries, missing exact runtime URLs, missing Mermaid source fallbacks, and changes to migrated IDs/files/`createdAt`. Failures identify project, file, rule, and line.
+
+Migrated HTML uses `https://cdn.tailwindcss.com/3.4.17`. Artifacts tagged `mermaid` use `https://cdn.jsdelivr.net/npm/mermaid@11.17.1/dist/mermaid.esm.min.mjs` and retain `class="mermaid"` plus `data-mermaid-source` fallback source (or a dynamic registry containing that source). `vespera:kth-irl-self-evaluation` is a specialized-chart exception: it may use only `canvas#radar` and decorative icon SVGs, and does not require Mermaid. The validator warns only for non-icon static SVGs that may be legacy hand-authored graphs; decorative SVGs and the KTH radar canvas are allowlisted.
+
 ---
 
 ## 3. Server Endpoints

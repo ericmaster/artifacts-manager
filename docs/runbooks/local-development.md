@@ -44,6 +44,12 @@ The repo ships with a CLI helper in `./bin/artman`:
 # List all registered projects and artifact counts
 ./bin/artman list
 
+# Read-only validation of all registered artifact contracts
+./bin/artman validate --all
+
+# Read-only validation of one project
+./bin/artman validate --project /home/ericmaster/nimbler-ops
+
 # Add an artifact to a project manifest and register project
 ./bin/artman add \
   --project /home/ericmaster/nimbler-ops \

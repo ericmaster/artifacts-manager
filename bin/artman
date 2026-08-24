@@ -3,6 +3,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
+import { formatResults, validateAll, validateProject } from '../src/lib/artifact-validator.mjs';
 
 const REGISTRY_PATH = path.join(os.homedir(), '.artifacts-manager.json');
 
@@ -69,6 +70,7 @@ Central visualizer and management hub for agent-generated HTML/MD artifacts.
   \x1b[36mlist\x1b[0m                          List all registered projects and artifact counts
   \x1b[36mregister\x1b[0m <project-path>        Register a local project directory in ~/.artifacts-manager.json
   \x1b[36madd\x1b[0m [options]                 Add/update an artifact in a project manifest and register
+  \x1b[36mvalidate\x1b[0m --all|--project <path>  Read-only artifact contract validation
   \x1b[36mhelp\x1b[0m                          Show this help message
 
 \x1b[1mOptions for 'add':\x1b[0m
@@ -253,6 +255,27 @@ async function handleAdd(args) {
   console.log(`\x1b[1m\x1b[35mArtifact URL:\x1b[0m http://localhost:41820/project/${projSlug}/artifact/${artifactId}\n`);
 }
 
+async function handleValidate(args) {
+  const all = args.includes('--all');
+  const projectIndex = args.indexOf('--project');
+  const projectPath = projectIndex >= 0 ? args[projectIndex + 1] : undefined;
+  if ((all && projectPath) || (!all && !projectPath)) {
+    console.error('Error: use exactly one of validate --all or validate --project <path>');
+    process.exitCode = 1;
+    return;
+  }
+  const results = all ? await validateAll(REGISTRY_PATH) : [await validateProject(expandHome(projectPath))];
+  const output = formatResults(results);
+  output.forEach((line) => console.log(line));
+  const failures = results.reduce((count, result) => count + result.errors.length, 0);
+  if (failures) {
+    console.error(`Validation failed: ${failures} error(s) across ${results.length} project(s).`);
+    process.exitCode = 1;
+  } else {
+    console.log(`Validation passed: ${results.length} project(s), read-only.`);
+  }
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const cmd = args[0];
@@ -268,6 +291,8 @@ async function main() {
     await handleRegister(args[1], args[2]);
   } else if (cmd === 'add') {
     await handleAdd(args.slice(1));
+  } else if (cmd === 'validate') {
+    await handleValidate(args.slice(1));
   } else {
     console.error(`\x1b[31mUnknown command: ${cmd}\x1b[0m`);
     printHelp();
