@@ -75,11 +75,17 @@ export async function validateProject(projectPath) {
   const projectName = typeof manifest.projectName === 'string' ? manifest.projectName : project;
   const artifactsDir = path.resolve(fullProjectPath, '.artifacts-manager');
   const artifacts = Array.isArray(manifest.artifacts) ? manifest.artifacts : [];
+  const expectedMigrations = [...MIGRATED_ARTIFACTS.entries()]
+    .filter(([key]) => key.startsWith(`${project}:`));
   const cataloguedFiles = new Set();
   const ids = new Set();
 
   if (!Array.isArray(manifest.artifacts)) {
     errors.push(issue(projectName, 'manifest.json', 'manifest-artifacts', 'artifacts must be an array'));
+  }
+
+  if (expectedMigrations.length && projectName !== project) {
+    errors.push(issue(project, 'manifest.json', 'migration-project', `migrated projectName must match registered project path: ${project}`));
   }
 
   for (const artifact of artifacts) {
@@ -111,7 +117,7 @@ export async function validateProject(projectPath) {
     }
 
     const key = `${projectName}:${artifact.id}`;
-    const expected = MIGRATED_ARTIFACTS.get(key);
+    const expected = MIGRATED_ARTIFACTS.get(`${project}:${artifact.id}`);
     if (expected && (artifact.file !== expected[0] || artifact.createdAt !== expected[1])) {
       errors.push(issue(projectName, displayFile, 'migration-identity', 'migrated id, file, and createdAt must match the contract'));
     }
@@ -144,6 +150,16 @@ export async function validateProject(projectPath) {
       if (!hasMermaidFallback(content)) {
         errors.push(issue(projectName, displayFile, 'mermaid-fallback', 'Mermaid artifacts need class="mermaid" and data-mermaid-source fallback source', lineOf(content, '<body')));
       }
+    }
+  }
+
+  for (const [key, [file, createdAt]] of expectedMigrations) {
+    const id = key.slice(project.length + 1);
+    const artifact = artifacts.find((entry) => entry?.id === id);
+    if (!artifact) {
+      errors.push(issue(project, 'manifest.json', 'migration-entry', `missing migrated artifact entry: ${id}`));
+    } else if (artifact.file !== file || artifact.createdAt !== createdAt) {
+      errors.push(issue(project, artifact.file || 'manifest.json', 'migration-identity', 'migrated id, file, and createdAt must match the contract'));
     }
   }
 

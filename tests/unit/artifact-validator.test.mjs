@@ -7,14 +7,15 @@ import { MERMAID_URL, TAILWIND_URL, formatResults, validateProject } from '../..
 const roots = [];
 const html = (extra = '') => `<script src="${TAILWIND_URL}"></script><pre class="mermaid" data-mermaid-source="flowchart LR">flowchart LR</pre><script type="module">import mermaid from '${MERMAID_URL}'</script>${extra}`;
 
-async function fixture({ name = 'fixture', artifact = {}, files = { 'diagram.html': html() } } = {}) {
+async function fixture({ name = 'fixture', pathName, artifact = {}, files = { 'diagram.html': html() } } = {}) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'artman-validator-'));
+  const projectRoot = pathName ? path.join(root, pathName) : root;
   roots.push(root);
-  const dir = path.join(root, '.artifacts-manager');
-  await fs.mkdir(dir);
+  const dir = path.join(projectRoot, '.artifacts-manager');
+  await fs.mkdir(dir, { recursive: true });
   await Promise.all(Object.entries(files).map(([file, content]) => fs.writeFile(path.join(dir, file), content)));
   await fs.writeFile(path.join(dir, 'manifest.json'), JSON.stringify({ projectName: name, artifacts: [{ id: 'diagram', type: 'html', file: 'diagram.html', createdAt: '2026-01-01T00:00:00.000Z', tags: ['mermaid'], ...artifact }] }));
-  return root;
+  return projectRoot;
 }
 
 afterEach(async () => { await Promise.all(roots.splice(0).map((root) => fs.rm(root, { recursive: true, force: true }))); });
@@ -47,6 +48,18 @@ test('validator fixture reports missing Mermaid source', async () => {
 test('validator fixture reports stale manifest entry', async () => {
   const root = await fixture({ files: { 'diagram.html': html(), 'stale.html': html() } });
   expect((await validateProject(root)).errors.map((error) => error.rule)).toContain('manifest-current');
+});
+
+test('validator fixture reports missing or stale migrated entries for its project path', async () => {
+  const missing = await fixture({ name: 'artifacts-manager', pathName: 'artifacts-manager' });
+  const stale = await fixture({
+    name: 'artifacts-manager',
+    pathName: 'artifacts-manager',
+    artifact: { id: 'artifacts-manager-topology', file: 'artifacts-manager-topology.html', createdAt: 'stale', tags: ['mermaid'] },
+    files: { 'artifacts-manager-topology.html': html() }
+  });
+  expect((await validateProject(missing)).errors.map((error) => error.rule)).toContain('migration-entry');
+  expect((await validateProject(stale)).errors.map((error) => error.rule)).toContain('migration-identity');
 });
 
 test('validator fixture permits the KTH canvas chart allowlist', async () => {
