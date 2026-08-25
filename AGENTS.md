@@ -17,7 +17,7 @@ Multi-project viewer and management hub for agent-generated interactive HTML and
 ## Layout
 
 ```
-bin/artman                           # CLI executable for registering projects & adding artifacts
+bin/artman                           # CLI executable for registering projects & managing artifacts (add, archive, restore, delete)
 skills/with-artifact/                # Shipped with-artifact agent skill (SKILL.md)
 src/
 ├── app.css                          # Nimblersoft dark theme & tokens
@@ -30,12 +30,13 @@ src/
     ├── +layout.svelte               # Root layout with navigation and dark styling
     ├── +page.svelte                 # Projects list & global stats dashboard
     ├── project/[projectSlug]/
-    │   ├── +page.svelte             # Project explorer with search & tag filtering
+    │   ├── +page.svelte             # Project explorer with search, tag & status filtering, archive/delete actions
     │   └── artifact/[artifactId]/
     │       └── +page.svelte         # Interactive artifact viewer (sandboxed iframe & Markdown)
     └── api/
         ├── projects/+server.ts      # Projects list & stats API
         ├── projects/[projectSlug]/+server.ts # Single project details API
+        ├── projects/[projectSlug]/artifacts/[artifactId]/+server.ts # Artifact archive/unarchive & delete API
         ├── raw/[projectSlug]/[...file]/+server.ts # Raw static asset/artifact file server
         └── register/+server.ts      # Project registration endpoint
 docs/
@@ -60,8 +61,11 @@ npm run dev
 | `npm run build` | Compile SvelteKit application using `@sveltejs/adapter-node` |
 | `npm run preview` | Run production preview server on port `41820` |
 | `npm run check` | Run TypeScript & SvelteKit type checks (`svelte-check`) |
-| `./bin/artman list` | List all registered projects from CLI |
+| `./bin/artman list` | List all registered projects and artifact counts |
 | `./bin/artman register <path>` | Register a local project directory into `~/.artifacts-manager.json` |
+| `./bin/artman archive <id> [--project <path>]` | Archive an artifact (hides from default view) |
+| `./bin/artman restore <id> [--project <path>]` | Restore an archived artifact to active |
+| `./bin/artman delete <id> [--project <path>]` | Permanently delete an artifact from manifest and disk |
 | `./bin/artman validate --all` | Read-only validation of registered artifact contracts |
 
 ## Architecture at a glance
@@ -83,7 +87,7 @@ npm run dev
 - `version`: string
 - `projectName`: string
 - `description`: string
-- `artifacts`: array of `{ id, title, type, file, description, tags, createdAt, updatedAt }`
+- `artifacts`: array of `{ id, title, type, file, description, tags, createdAt, updatedAt, archived?, archivedAt? }`
 
 ## Testing
 

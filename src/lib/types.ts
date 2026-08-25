@@ -10,6 +10,8 @@ export interface ArtifactMeta {
   tags: string[];
   createdAt: string;
   updatedAt: string;
+  archived?: boolean;
+  archivedAt?: string;
 }
 
 export interface ProjectManifest {
@@ -39,6 +41,8 @@ export interface ProjectSummary {
   hasManifest: boolean;
   description?: string;
   artifactCount: number;
+  activeArtifactCount?: number;
+  archivedArtifactCount?: number;
   tags: string[];
   artifacts: ArtifactMeta[];
   registeredAt: string;

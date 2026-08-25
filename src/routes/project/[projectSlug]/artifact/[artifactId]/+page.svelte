@@ -16,7 +16,10 @@
     Info, 
     Tag as TagIcon,
     Calendar,
-    FolderGit2
+    FolderGit2,
+    Archive,
+    ArchiveRestore,
+    Trash2
   } from 'lucide-svelte';
 
   let { data }: { data: PageData } = $props();
@@ -27,6 +30,23 @@
   let copiedLink = $state(false);
   let iframeKey = $state(0);
   let markdownRoot = $state<HTMLElement | undefined>();
+
+  // Interactive archive / delete states
+  let isArchived = $state(Boolean(data.artifact.archived));
+  let archivedAt = $state(data.artifact.archivedAt);
+  let deleteModalOpen = $state(false);
+  let isPending = $state(false);
+  let toastMessage = $state<string | null>(null);
+  let toastTimeout: any;
+
+  function showToast(msg: string) {
+    toastMessage = msg;
+    if (toastTimeout) clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+      toastMessage = null;
+    }, 3000);
+  }
+
   const mermaidUrl = 'https://cdn.jsdelivr.net/npm/mermaid@11.17.1/dist/mermaid.esm.min.mjs';
   const mermaidError = 'Diagram unavailable. The Mermaid source is shown below.';
   type MermaidModule = {
@@ -142,6 +162,50 @@
       return isoStr;
     }
   }
+
+  async function toggleArchive() {
+    isPending = true;
+    const target = !isArchived;
+    try {
+      const res = await fetch(`/api/projects/${data.artifact.projectSlug}/artifacts/${data.artifact.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archived: target })
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || 'Failed to update artifact status');
+      }
+      isArchived = target;
+      archivedAt = target ? new Date().toISOString() : undefined;
+      data.artifact.archived = target;
+      data.artifact.archivedAt = archivedAt;
+      showToast(target ? 'Artifact archived' : 'Artifact restored to active');
+    } catch (err: any) {
+      alert(`Error updating artifact: ${err.message}`);
+    } finally {
+      isPending = false;
+    }
+  }
+
+  async function executeDelete() {
+    isPending = true;
+    try {
+      const res = await fetch(`/api/projects/${data.artifact.projectSlug}/artifacts/${data.artifact.id}`, {
+        method: 'DELETE'
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || 'Failed to delete artifact');
+      }
+      if (typeof window !== 'undefined') {
+        window.location.href = `/project/${data.artifact.projectSlug}`;
+      }
+    } catch (err: any) {
+      alert(`Error deleting artifact: ${err.message}`);
+      isPending = false;
+    }
+  }
 </script>
 
 <div class="viewer-layout">
@@ -173,6 +237,13 @@
             <span>Markdown</span>
           {/if}
         </span>
+
+        {#if isArchived}
+          <span class="type-badge tag-badge-archived">
+            <Archive size={12} />
+            <span>Archived</span>
+          </span>
+        {/if}
       </div>
     </div>
 
@@ -248,6 +319,31 @@
           {/if}
         </button>
 
+        <!-- Archive / Restore action -->
+        <button 
+          class="btn-icon" 
+          class:btn-active-archived={isArchived}
+          onclick={toggleArchive} 
+          disabled={isPending}
+          title={isArchived ? "Restore artifact to active" : "Archive artifact"}
+        >
+          {#if isArchived}
+            <ArchiveRestore size={16} class="text-amber-400" />
+          {:else}
+            <Archive size={16} />
+          {/if}
+        </button>
+
+        <!-- Delete action -->
+        <button 
+          class="btn-icon btn-icon-danger" 
+          onclick={() => (deleteModalOpen = true)} 
+          disabled={isPending}
+          title="Delete artifact permanently"
+        >
+          <Trash2 size={16} />
+        </button>
+
         <a 
           href={data.artifact.rawUrl} 
           target="_blank" 
@@ -261,6 +357,31 @@
       </div>
     </div>
   </header>
+
+  <!-- Archived Notice Banner if applicable -->
+  {#if isArchived}
+    <div class="archived-banner glass-panel">
+      <div class="banner-left">
+        <Archive size={18} class="text-amber-400" />
+        <span>
+          This artifact is <strong>archived</strong> and hidden from the default project explorer view.
+          {#if archivedAt}
+            <span class="banner-timestamp">Archived on {formatDate(archivedAt)}</span>
+          {/if}
+        </span>
+      </div>
+      <div class="banner-right">
+        <button class="btn-sm btn-secondary" onclick={toggleArchive} disabled={isPending}>
+          <ArchiveRestore size={14} />
+          <span>Restore to Active</span>
+        </button>
+        <button class="btn-sm btn-danger" onclick={() => (deleteModalOpen = true)} disabled={isPending}>
+          <Trash2 size={14} />
+          <span>Delete</span>
+        </button>
+      </div>
+    </div>
+  {/if}
 
   <!-- Main Viewer & Side Pane Container -->
   <div class="viewer-body-container">
@@ -302,6 +423,21 @@
         <div class="drawer-header">
           <h3>Artifact Metadata</h3>
           <button class="btn-icon" onclick={() => (showMetadata = false)}>✕</button>
+        </div>
+
+        <div class="drawer-section">
+          <span class="meta-label">Status</span>
+          {#if isArchived}
+            <span class="meta-status-chip meta-status-archived">
+              <Archive size={12} />
+              <span>Archived</span>
+            </span>
+          {:else}
+            <span class="meta-status-chip meta-status-active">
+              <Check size={12} />
+              <span>Active</span>
+            </span>
+          {/if}
         </div>
 
         <div class="drawer-section">
@@ -351,10 +487,90 @@
             <span class="meta-value">{formatDate(data.artifact.updatedAt)}</span>
           </div>
         {/if}
+
+        <div class="drawer-actions-box">
+          <button class="btn-secondary w-full" onclick={toggleArchive} disabled={isPending}>
+            {#if isArchived}
+              <ArchiveRestore size={14} class="text-amber-400" />
+              <span>Restore to Active</span>
+            {:else}
+              <Archive size={14} />
+              <span>Archive Artifact</span>
+            {/if}
+          </button>
+          <button class="btn-danger-subtle w-full" onclick={() => (deleteModalOpen = true)} disabled={isPending}>
+            <Trash2 size={14} />
+            <span>Delete Artifact</span>
+          </button>
+        </div>
       </aside>
     {/if}
   </div>
 </div>
+
+<!-- Delete Confirmation Modal -->
+{#if deleteModalOpen}
+  <div class="modal-backdrop" onclick={() => { if (!isPending) deleteModalOpen = false; }} role="presentation">
+    <div class="modal-card glass-panel" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div class="modal-danger-icon">
+          <Trash2 size={22} />
+        </div>
+        <div class="modal-title-box">
+          <h3>Delete Artifact</h3>
+          <p class="modal-subtitle">Permanent action — cannot be undone.</p>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-warning-text">
+          Are you sure you want to permanently delete <strong>{data.artifact.title}</strong>?
+        </p>
+        <div class="delete-file-info">
+          <span class="file-label">File to be removed:</span>
+          <code class="file-code">.artifacts-manager/{data.artifact.file}</code>
+        </div>
+        <p class="modal-subtext">
+          This will remove the artifact from <code>manifest.json</code> and delete its file from disk. You will be redirected to the project page.
+        </p>
+      </div>
+
+      <div class="modal-actions">
+        <button 
+          type="button" 
+          class="btn-secondary" 
+          disabled={isPending} 
+          onclick={() => (deleteModalOpen = false)}
+        >
+          Cancel
+        </button>
+        <button 
+          type="button" 
+          class="btn-danger" 
+          disabled={isPending} 
+          onclick={executeDelete}
+        >
+          {#if isPending}
+            <RotateCw size={15} class="animate-spin" />
+            <span>Deleting...</span>
+          {:else}
+            <Trash2 size={15} />
+            <span>Delete Permanently</span>
+          {/if}
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
+
+<!-- Toast Notification -->
+{#if toastMessage}
+  <div class="toast-notification glass-panel">
+    <Check size={16} class="text-emerald-400" />
+    <span>{toastMessage}</span>
+    <button class="toast-close" onclick={() => (toastMessage = null)}>×</button>
+  </div>
+{/if}
 
 <style>
   .viewer-layout {
@@ -424,6 +640,12 @@
     font-weight: 600;
   }
 
+  .tag-badge-archived {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+  }
+
   .header-right {
     display: flex;
     align-items: center;
@@ -446,9 +668,69 @@
     gap: 0.5rem;
   }
 
+  .btn-icon-danger:hover {
+    color: var(--accent-rose);
+    border-color: rgba(244, 63, 94, 0.4);
+    background: rgba(244, 63, 94, 0.1);
+  }
+
   .open-raw-btn {
     padding: 0.45rem 0.85rem;
     font-size: 0.825rem;
+  }
+
+  /* Archived Banner */
+  .archived-banner {
+    padding: 0.85rem 1.25rem;
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.875rem;
+    color: #fef3c7;
+  }
+
+  .banner-left {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .banner-timestamp {
+    font-size: 0.775rem;
+    color: var(--text-muted);
+    margin-left: 0.5rem;
+  }
+
+  .banner-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .btn-sm {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.775rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+  }
+
+  .btn-danger-subtle {
+    background: rgba(244, 63, 94, 0.12);
+    color: #fda4af;
+    border: 1px solid rgba(244, 63, 94, 0.3);
+    transition: all 0.15s ease;
+  }
+
+  .btn-danger-subtle:hover:not(:disabled) {
+    background: rgba(244, 63, 94, 0.25);
+    color: #ffffff;
   }
 
   /* Main Container */
@@ -585,6 +867,29 @@
     color: var(--text-primary);
   }
 
+  .meta-status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 600;
+    width: fit-content;
+  }
+
+  .meta-status-active {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+
+  .meta-status-archived {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+  }
+
   .meta-code {
     font-family: var(--font-mono);
     font-size: 0.775rem;
@@ -615,8 +920,195 @@
     gap: 0.35rem;
   }
 
+  .drawer-actions-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-subtle);
+    margin-top: auto;
+  }
+
+  .w-full {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 1rem;
+    animation: fadeIn 0.15s ease;
+  }
+
+  .modal-card {
+    max-width: 480px;
+    width: 100%;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    box-shadow: var(--shadow-xl), 0 0 35px -5px rgba(244, 63, 94, 0.25);
+    border-color: rgba(244, 63, 94, 0.3);
+    animation: scaleUp 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .modal-danger-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    background: rgba(244, 63, 94, 0.15);
+    border: 1px solid rgba(244, 63, 94, 0.3);
+    color: var(--accent-rose);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .modal-title-box h3 {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+  }
+
+  .modal-subtitle {
+    font-size: 0.8rem;
+    color: var(--accent-rose);
+  }
+
+  .modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .delete-file-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .file-label {
+    font-size: 0.725rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .file-code {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--accent-rose);
+    word-break: break-all;
+  }
+
+  .modal-subtext {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  .modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .btn-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: #e11d48;
+    color: #ffffff;
+    padding: 0.55rem 1.1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid #f43f5e;
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+    transition: all 0.15s ease;
+  }
+
+  .btn-danger:hover:not(:disabled) {
+    background: #be123c;
+    box-shadow: 0 6px 16px rgba(225, 29, 72, 0.45);
+    transform: translateY(-1px);
+  }
+
+  .btn-danger:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Toast */
+  .toast-notification {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: var(--radius-md);
+    background: #131b2e;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    box-shadow: var(--shadow-xl), 0 0 25px -5px rgba(16, 185, 129, 0.25);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    z-index: 120;
+    animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .toast-close {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    padding: 0.2rem;
+    line-height: 1;
+  }
+
+  .toast-close:hover {
+    color: var(--text-primary);
+  }
+
   @keyframes slideLeft {
     from { transform: translateX(20px); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes scaleUp {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(15px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
   }
 </style>

@@ -70,6 +70,9 @@ Central visualizer and management hub for agent-generated HTML/MD artifacts.
   \x1b[36mlist\x1b[0m                          List all registered projects and artifact counts
   \x1b[36mregister\x1b[0m <project-path>        Register a local project directory in ~/.artifacts-manager.json
   \x1b[36madd\x1b[0m [options]                 Add/update an artifact in a project manifest and register
+  \x1b[36marchive\x1b[0m <id> [options]         Archive an artifact (hides from default view)
+  \x1b[36mrestore\x1b[0m <id> [options]         Restore/unarchive an archived artifact
+  \x1b[36mdelete\x1b[0m <id> [options]          Permanently delete an artifact from manifest and disk
   \x1b[36mvalidate\x1b[0m --all|--project <path>  Read-only artifact contract validation
   \x1b[36mhelp\x1b[0m                          Show this help message
 
@@ -82,6 +85,11 @@ Central visualizer and management hub for agent-generated HTML/MD artifacts.
   --desc <string>               (Optional) Short summary description of the artifact
   --tags <tag1,tag2>            (Optional) Comma-separated tags (e.g. architecture,topology,d1)
 
+\x1b[1mOptions for 'archive', 'restore', and 'delete':\x1b[0m
+  --project <path>              Project root directory (default: current working directory)
+  --id <string>                 Artifact ID to target (can also be passed as 1st positional arg)
+  --keep-file                   (Delete only) Keep the underlying file on disk
+
 \x1b[1mExamples:\x1b[0m
   artman register ~/products/nimblercrm
   artman list
@@ -90,6 +98,9 @@ Central visualizer and management hub for agent-generated HTML/MD artifacts.
              --title "Orchestrator Topology" \\
              --desc "Interactive diagram of orchestrator nodes" \\
              --tags "architecture,topology,orchestrator"
+  artman archive orchestrator-topology --project ~/nimbler-ops
+  artman restore orchestrator-topology --project ~/nimbler-ops
+  artman delete orchestrator-topology --project ~/nimbler-ops
 `);
 }
 
@@ -115,13 +126,18 @@ async function handleList() {
     }
 
     const manifest = exists ? await getManifest(fullPath) : null;
-    const count = manifest?.artifacts?.length || 0;
+    const artifacts = manifest?.artifacts || [];
+    const activeCount = artifacts.filter(a => !a.archived).length;
+    const archivedCount = artifacts.filter(a => !!a.archived).length;
+    const countDisplay = archivedCount > 0 
+      ? `${activeCount} active (${archivedCount} archived)` 
+      : `${artifacts.length} item(s)`;
     const status = !exists ? '\x1b[31m[NOT FOUND]\x1b[0m' : '\x1b[32m[ACTIVE]\x1b[0m';
     const slug = slugify(p.name || path.basename(fullPath));
 
     console.log(`${status} \x1b[1m${p.name}\x1b[0m (\x1b[36m${slug}\x1b[0m)`);
     console.log(`   Path:      ${fullPath}`);
-    console.log(`   Artifacts: ${count} item(s)`);
+    console.log(`   Artifacts: ${countDisplay}`);
     console.log(`   Viewer:    http://localhost:41820/project/${slug}`);
     console.log('─'.repeat(75));
   }
@@ -255,6 +271,108 @@ async function handleAdd(args) {
   console.log(`\x1b[1m\x1b[35mArtifact URL:\x1b[0m http://localhost:41820/project/${projSlug}/artifact/${artifactId}\n`);
 }
 
+async function handleArchive(args, shouldArchive = true) {
+  let projectPath = process.cwd();
+  let artifactId = '';
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === '--project') projectPath = args[++i];
+    else if (arg === '--id') artifactId = args[++i];
+    else if (!arg.startsWith('-') && !artifactId) artifactId = arg;
+  }
+
+  if (!artifactId) {
+    console.error(`\x1b[31mError: Artifact ID required. Run: artman ${shouldArchive ? 'archive' : 'restore'} <artifact-id> [--project <path>]\x1b[0m`);
+    process.exit(1);
+  }
+
+  const fullProjectPath = expandHome(projectPath);
+  const manifest = await getManifest(fullProjectPath);
+  if (!manifest || !Array.isArray(manifest.artifacts)) {
+    console.error(`\x1b[31mError: No manifest.json found at ${fullProjectPath}/.artifacts-manager/manifest.json\x1b[0m`);
+    process.exit(1);
+  }
+
+  const artifact = manifest.artifacts.find(a => a.id === artifactId || slugify(a.title) === artifactId);
+  if (!artifact) {
+    console.error(`\x1b[31mError: Artifact '${artifactId}' not found in project '${manifest.projectName || path.basename(fullProjectPath)}'.\x1b[0m`);
+    process.exit(1);
+  }
+
+  const now = new Date().toISOString();
+  artifact.archived = shouldArchive;
+  if (shouldArchive) {
+    artifact.archivedAt = now;
+  } else {
+    delete artifact.archivedAt;
+  }
+  artifact.updatedAt = now;
+
+  await saveManifest(fullProjectPath, manifest);
+  await handleRegister(fullProjectPath, manifest.projectName);
+
+  const actionVerb = shouldArchive ? 'Archived' : 'Restored';
+  console.log(`\x1b[32m✓ ${actionVerb} artifact:\x1b[0m \x1b[1m${artifact.title}\x1b[0m (${artifact.id}) in ${manifest.projectName || path.basename(fullProjectPath)}\n`);
+}
+
+async function handleDelete(args) {
+  let projectPath = process.cwd();
+  let artifactId = '';
+  let keepFile = false;
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === '--project') projectPath = args[++i];
+    else if (arg === '--id') artifactId = args[++i];
+    else if (arg === '--keep-file') keepFile = true;
+    else if (!arg.startsWith('-') && !artifactId) artifactId = arg;
+  }
+
+  if (!artifactId) {
+    console.error('\x1b[31mError: Artifact ID required. Run: artman delete <artifact-id> [--project <path>]\x1b[0m');
+    process.exit(1);
+  }
+
+  const fullProjectPath = expandHome(projectPath);
+  const manifest = await getManifest(fullProjectPath);
+  if (!manifest || !Array.isArray(manifest.artifacts)) {
+    console.error(`\x1b[31mError: No manifest.json found at ${fullProjectPath}/.artifacts-manager/manifest.json\x1b[0m`);
+    process.exit(1);
+  }
+
+  const idx = manifest.artifacts.findIndex(a => a.id === artifactId || slugify(a.title) === artifactId);
+  if (idx < 0) {
+    console.error(`\x1b[31mError: Artifact '${artifactId}' not found in project '${manifest.projectName || path.basename(fullProjectPath)}'.\x1b[0m`);
+    process.exit(1);
+  }
+
+  const artifact = manifest.artifacts[idx];
+  const fileName = artifact.file;
+
+  if (!keepFile && fileName) {
+    const artifactsDir = path.resolve(fullProjectPath, '.artifacts-manager');
+    const targetFilePath = path.resolve(artifactsDir, fileName);
+
+    // Security check: Must reside within artifactsDir
+    if (targetFilePath.startsWith(artifactsDir + path.sep) || targetFilePath === artifactsDir) {
+      try {
+        await fs.unlink(targetFilePath);
+      } catch (err) {
+        if (err.code !== 'ENOENT') {
+          console.warn(`\x1b[33mWarning: Could not delete file ${fileName} on disk: ${err.message}\x1b[0m`);
+        }
+      }
+    }
+  }
+
+  manifest.artifacts.splice(idx, 1);
+  await saveManifest(fullProjectPath, manifest);
+  await handleRegister(fullProjectPath, manifest.projectName);
+
+  console.log(`\x1b[32m✓ Deleted artifact:\x1b[0m \x1b[1m${artifact.title}\x1b[0m (${artifact.id}) from ${manifest.projectName || path.basename(fullProjectPath)}\n`);
+}
+
 async function handleValidate(args) {
   const all = args.includes('--all');
   const projectIndex = args.indexOf('--project');
@@ -291,6 +409,12 @@ async function main() {
     await handleRegister(args[1], args[2]);
   } else if (cmd === 'add') {
     await handleAdd(args.slice(1));
+  } else if (cmd === 'archive') {
+    await handleArchive(args.slice(1), true);
+  } else if (cmd === 'restore' || cmd === 'unarchive') {
+    await handleArchive(args.slice(1), false);
+  } else if (cmd === 'delete' || cmd === 'rm') {
+    await handleDelete(args.slice(1));
   } else if (cmd === 'validate') {
     await handleValidate(args.slice(1));
   } else {

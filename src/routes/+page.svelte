@@ -198,7 +198,12 @@
             <div class="card-footer">
               <div class="artifacts-count-badge">
                 <FileCode2 size={14} />
-                <span>{project.artifactCount} {project.artifactCount === 1 ? 'artifact' : 'artifacts'}</span>
+                <span>
+                  {project.activeArtifactCount ?? project.artifactCount} {((project.activeArtifactCount ?? project.artifactCount) === 1) ? 'artifact' : 'artifacts'}
+                  {#if project.archivedArtifactCount && project.archivedArtifactCount > 0}
+                    <span class="archived-text">({project.archivedArtifactCount} archived)</span>
+                  {/if}
+                </span>
               </div>
 
               {#if project.tags.length > 0}
@@ -506,6 +511,13 @@
     font-size: 0.775rem;
     font-weight: 600;
     color: var(--accent-indigo);
+  }
+
+  .archived-text {
+    color: #fbbf24;
+    font-size: 0.725rem;
+    font-weight: 500;
+    margin-left: 0.25rem;
   }
 
   .project-tags {

@@ -71,6 +71,17 @@ export async function getProjectManifest(projectPath: string): Promise<ProjectMa
 }
 
 /**
+ * Saves a project's manifest to <project-root>/.artifacts-manager/manifest.json.
+ */
+export async function saveProjectManifest(projectPath: string, manifest: ProjectManifest): Promise<void> {
+  const fullPath = expandHome(projectPath);
+  const dir = path.join(fullPath, '.artifacts-manager');
+  await fs.mkdir(dir, { recursive: true });
+  const manifestPath = path.join(dir, 'manifest.json');
+  await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2), 'utf-8');
+}
+
+/**
  * Lists all registered projects with their artifact counts, tags, and status.
  */
 export async function getAllProjects(): Promise<ProjectSummary[]> {
@@ -89,6 +100,8 @@ export async function getAllProjects(): Promise<ProjectSummary[]> {
 
     const manifest = exists ? await getProjectManifest(fullPath) : null;
     const artifacts = manifest?.artifacts || [];
+    const activeArtifacts = artifacts.filter(a => !a.archived);
+    const archivedArtifacts = artifacts.filter(a => !!a.archived);
     
     // Extract unique tags
     const tagSet = new Set<string>();
@@ -111,6 +124,8 @@ export async function getAllProjects(): Promise<ProjectSummary[]> {
       hasManifest: !!manifest,
       description: manifest?.description,
       artifactCount: artifacts.length,
+      activeArtifactCount: activeArtifacts.length,
+      archivedArtifactCount: archivedArtifacts.length,
       tags: Array.from(tagSet).sort(),
       artifacts,
       registeredAt: proj.registeredAt || new Date().toISOString(),
@@ -221,3 +236,116 @@ export async function registerProject(projectPath: string, customName?: string):
   }
   return summary;
 }
+
+/**
+ * Archives or unarchives an artifact in a project's manifest.
+ */
+export async function archiveArtifact(
+  projectSlug: string,
+  artifactId: string,
+  archived = true
+): Promise<ArtifactDetail> {
+  const project = await getProjectBySlug(projectSlug);
+  if (!project || !project.exists) {
+    throw new Error(`Project not found: ${projectSlug}`);
+  }
+
+  const manifest = await getProjectManifest(project.path);
+  if (!manifest) {
+    throw new Error(`Project manifest not found for: ${project.name}`);
+  }
+
+  const idx = manifest.artifacts.findIndex(a => a.id === artifactId || slugify(a.title) === artifactId);
+  if (idx < 0) {
+    throw new Error(`Artifact not found: ${artifactId} in project ${projectSlug}`);
+  }
+
+  const now = new Date().toISOString();
+  const art = manifest.artifacts[idx];
+  art.archived = archived;
+  if (archived) {
+    art.archivedAt = now;
+  } else {
+    delete art.archivedAt;
+  }
+  art.updatedAt = now;
+
+  await saveProjectManifest(project.path, manifest);
+
+  // Update lastActiveAt in central registry
+  const registry = await getCentralRegistry();
+  const pIdx = registry.projects.findIndex(p => expandHome(p.path) === project.path);
+  if (pIdx >= 0) {
+    registry.projects[pIdx].lastActiveAt = now;
+    await saveCentralRegistry(registry);
+  }
+
+  const updated = await getArtifact(project.slug, art.id);
+  if (!updated) {
+    throw new Error(`Failed to retrieve updated artifact: ${art.id}`);
+  }
+  return updated;
+}
+
+/**
+ * Deletes an artifact from a project's manifest and optionally removes the file from disk.
+ */
+export async function deleteArtifact(
+  projectSlug: string,
+  artifactId: string,
+  deleteFile = true
+): Promise<{ success: boolean; deletedArtifactId: string; deletedFile?: string }> {
+  const project = await getProjectBySlug(projectSlug);
+  if (!project || !project.exists) {
+    throw new Error(`Project not found: ${projectSlug}`);
+  }
+
+  const manifest = await getProjectManifest(project.path);
+  if (!manifest) {
+    throw new Error(`Project manifest not found for: ${project.name}`);
+  }
+
+  const idx = manifest.artifacts.findIndex(a => a.id === artifactId || slugify(a.title) === artifactId);
+  if (idx < 0) {
+    throw new Error(`Artifact not found: ${artifactId} in project ${projectSlug}`);
+  }
+
+  const art = manifest.artifacts[idx];
+  const targetFileName = art.file;
+
+  if (deleteFile && targetFileName) {
+    const artifactsDir = path.resolve(project.path, '.artifacts-manager');
+    const targetFilePath = path.resolve(artifactsDir, targetFileName);
+
+    // Security check: Target must reside strictly within artifactsDir
+    if (!targetFilePath.startsWith(artifactsDir + path.sep) && targetFilePath !== artifactsDir) {
+      throw new Error(`Security alert: Directory traversal attempt detected during deletion: ${targetFileName}`);
+    }
+
+    try {
+      await fs.unlink(targetFilePath);
+    } catch (err: any) {
+      if (err.code !== 'ENOENT') {
+        console.warn(`Warning: Could not delete artifact file ${targetFilePath}:`, err);
+      }
+    }
+  }
+
+  manifest.artifacts.splice(idx, 1);
+  await saveProjectManifest(project.path, manifest);
+
+  const now = new Date().toISOString();
+  const registry = await getCentralRegistry();
+  const pIdx = registry.projects.findIndex(p => expandHome(p.path) === project.path);
+  if (pIdx >= 0) {
+    registry.projects[pIdx].lastActiveAt = now;
+    await saveCentralRegistry(registry);
+  }
+
+  return {
+    success: true,
+    deletedArtifactId: art.id,
+    deletedFile: targetFileName
+  };
+}
+

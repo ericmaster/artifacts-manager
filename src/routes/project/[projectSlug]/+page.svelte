@@ -15,7 +15,11 @@
     Sparkles, 
     Calendar,
     Copy,
-    Check
+    Check,
+    Archive,
+    ArchiveRestore,
+    Trash2,
+    RotateCw
   } from 'lucide-svelte';
   import TagBadge from '$lib/components/TagBadge.svelte';
 
@@ -24,12 +28,33 @@
   let searchQuery = $state('');
   let selectedTags = $state<string[]>([]);
   let selectedType = $state<'all' | 'html' | 'markdown'>('all');
+  let selectedStatus = $state<'active' | 'archived' | 'all'>('active');
   let viewMode = $state<'grid' | 'list'>('grid');
   let copiedPath = $state(false);
 
+  // Local state for interactive artifact changes
+  let artifactsList = $state([...data.project.artifacts]);
+  let deleteModalOpen = $state(false);
+  let artifactToDelete = $state<any | null>(null);
+  let isActionPending = $state(false);
+  let toastMessage = $state<string | null>(null);
+  let toastTimeout: any;
+
+  function showToast(msg: string) {
+    toastMessage = msg;
+    if (toastTimeout) clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+      toastMessage = null;
+    }, 3000);
+  }
+
+  let activeCount = $derived(artifactsList.filter(a => !a.archived).length);
+  let archivedCount = $derived(artifactsList.filter(a => !!a.archived).length);
+  let totalCount = $derived(artifactsList.length);
+
   // Filter artifacts
   let filteredArtifacts = $derived(
-    data.project.artifacts.filter(art => {
+    artifactsList.filter(art => {
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch = 
         !q ||
@@ -42,11 +67,15 @@
         selectedType === 'all' || 
         art.type === selectedType;
 
+      const matchesStatus = 
+        selectedStatus === 'all' ||
+        (selectedStatus === 'archived' ? !!art.archived : !art.archived);
+
       const matchesTags = 
         selectedTags.length === 0 || 
         selectedTags.every(st => art.tags.map(t => t.toLowerCase()).includes(st.toLowerCase()));
 
-      return matchesSearch && matchesType && matchesTags;
+      return matchesSearch && matchesType && matchesStatus && matchesTags;
     })
   );
 
@@ -63,6 +92,7 @@
     searchQuery = '';
     selectedTags = [];
     selectedType = 'all';
+    selectedStatus = 'active';
   }
 
   function copyProjectPath() {
@@ -80,6 +110,66 @@
       return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
     } catch {
       return isoStr;
+    }
+  }
+
+  async function toggleArchive(art: any) {
+    const targetState = !art.archived;
+    isActionPending = true;
+    try {
+      const res = await fetch(`/api/projects/${data.project.slug}/artifacts/${art.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archived: targetState })
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || 'Failed to update artifact status');
+      }
+
+      const idx = artifactsList.findIndex(a => a.id === art.id);
+      if (idx >= 0) {
+        artifactsList[idx] = {
+          ...artifactsList[idx],
+          archived: targetState,
+          archivedAt: targetState ? new Date().toISOString() : undefined,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      showToast(targetState ? `Archived "${art.title}"` : `Restored "${art.title}"`);
+    } catch (err: any) {
+      alert(`Error updating artifact: ${err.message}`);
+    } finally {
+      isActionPending = false;
+    }
+  }
+
+  function promptDelete(art: any) {
+    artifactToDelete = art;
+    deleteModalOpen = true;
+  }
+
+  async function executeDelete() {
+    if (!artifactToDelete) return;
+    isActionPending = true;
+    try {
+      const res = await fetch(`/api/projects/${data.project.slug}/artifacts/${artifactToDelete.id}`, {
+        method: 'DELETE'
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || 'Failed to delete artifact');
+      }
+
+      const deletedTitle = artifactToDelete.title;
+      artifactsList = artifactsList.filter(a => a.id !== artifactToDelete.id);
+      deleteModalOpen = false;
+      artifactToDelete = null;
+      showToast(`Permanently deleted "${deletedTitle}"`);
+    } catch (err: any) {
+      alert(`Error deleting artifact: ${err.message}`);
+    } finally {
+      isActionPending = false;
     }
   }
 </script>
@@ -105,7 +195,10 @@
         <div class="header-title-row">
           <h1>{data.project.name}</h1>
           <span class="artifact-count-pill">
-            {data.project.artifactCount} {data.project.artifactCount === 1 ? 'Artifact' : 'Artifacts'}
+            {activeCount} {activeCount === 1 ? 'Active Artifact' : 'Active Artifacts'}
+            {#if archivedCount > 0}
+              <span class="archived-subcount">({archivedCount} archived)</span>
+            {/if}
           </span>
         </div>
         {#if data.project.description}
@@ -148,7 +241,38 @@
         {/if}
       </div>
 
-      <div class="type-filter-group">
+      <!-- Lifecycle / Status Filter -->
+      <div class="segmented-control status-filter-group">
+        <button 
+          class="filter-btn" 
+          class:active={selectedStatus === 'active'} 
+          onclick={() => (selectedStatus = 'active')}
+        >
+          <span>Active</span>
+          <span class="count-bubble">{activeCount}</span>
+        </button>
+        <button 
+          class="filter-btn" 
+          class:active={selectedStatus === 'archived'} 
+          onclick={() => (selectedStatus = 'archived')}
+        >
+          <Archive size={13} />
+          <span>Archived</span>
+          {#if archivedCount > 0}
+            <span class="count-bubble count-bubble-amber">{archivedCount}</span>
+          {/if}
+        </button>
+        <button 
+          class="filter-btn" 
+          class:active={selectedStatus === 'all'} 
+          onclick={() => (selectedStatus = 'all')}
+        >
+          <span>All</span>
+          <span class="count-bubble">{totalCount}</span>
+        </button>
+      </div>
+
+      <div class="segmented-control type-filter-group">
         <button 
           class="filter-btn" 
           class:active={selectedType === 'all'} 
@@ -170,7 +294,7 @@
           onclick={() => (selectedType = 'markdown')}
         >
           <span class="dot dot-md"></span>
-          Markdown
+          MD
         </button>
       </div>
 
@@ -211,7 +335,7 @@
             />
           {/each}
         </div>
-        {#if selectedTags.length > 0 || selectedType !== 'all' || searchQuery}
+        {#if selectedTags.length > 0 || selectedType !== 'all' || selectedStatus !== 'active' || searchQuery}
           <button class="clear-all-link" onclick={clearFilters}>
             Clear all filters
           </button>
@@ -223,7 +347,17 @@
   <!-- Artifacts List / Grid -->
   <section class="artifacts-display-section">
     <div class="display-header">
-      <h2>Artifacts ({filteredArtifacts.length})</h2>
+      <div class="display-title-group">
+        <h2>
+          {#if selectedStatus === 'active'}
+            Active Artifacts ({filteredArtifacts.length})
+          {:else if selectedStatus === 'archived'}
+            Archived Artifacts ({filteredArtifacts.length})
+          {:else}
+            All Artifacts ({filteredArtifacts.length})
+          {/if}
+        </h2>
+      </div>
       {#if selectedTags.length > 0}
         <div class="active-tags-summary">
           <span>Active tag filters:</span>
@@ -240,17 +374,29 @@
     {#if filteredArtifacts.length === 0}
       <div class="empty-state glass-panel">
         <div class="empty-icon">
-          <FileCode2 size={36} class="text-indigo-400" />
+          {#if selectedStatus === 'archived'}
+            <Archive size={36} class="text-amber-400" />
+          {:else}
+            <FileCode2 size={36} class="text-indigo-400" />
+          {/if}
         </div>
-        <h3>No artifacts found</h3>
+        <h3>
+          {#if selectedStatus === 'archived'}
+            No archived artifacts
+          {:else}
+            No artifacts found
+          {/if}
+        </h3>
         <p class="empty-text">
           {#if searchQuery || selectedTags.length > 0 || selectedType !== 'all'}
             No artifacts in <strong>{data.project.name}</strong> match your filter criteria.
+          {:else if selectedStatus === 'archived'}
+            There are no archived artifacts in this project.
           {:else}
-            No artifacts found in <code>.artifacts-manager/manifest.json</code> for this project.
+            No active artifacts found in <code>.artifacts-manager/manifest.json</code> for this project.
           {/if}
         </p>
-        {#if searchQuery || selectedTags.length > 0 || selectedType !== 'all'}
+        {#if searchQuery || selectedTags.length > 0 || selectedType !== 'all' || selectedStatus !== 'active'}
           <button class="btn-secondary" onclick={clearFilters}>
             Reset Filters
           </button>
@@ -263,18 +409,27 @@
       </div>
     {:else if viewMode === 'grid'}
       <div class="artifacts-grid">
-        {#each filteredArtifacts as artifact}
-          <div class="artifact-card glass-panel">
+        {#each filteredArtifacts as artifact (artifact.id)}
+          <div class="artifact-card glass-panel" class:card-archived={artifact.archived}>
             <div class="art-card-top">
-              <span class="type-badge" class:tag-badge-html={artifact.type === 'html'} class:tag-badge-md={artifact.type === 'markdown'}>
-                {#if artifact.type === 'html'}
-                  <FileCode2 size={13} />
-                  <span>Interactive HTML</span>
-                {:else}
-                  <FileText size={13} />
-                  <span>Markdown</span>
+              <div class="badges-row">
+                <span class="type-badge" class:tag-badge-html={artifact.type === 'html'} class:tag-badge-md={artifact.type === 'markdown'}>
+                  {#if artifact.type === 'html'}
+                    <FileCode2 size={13} />
+                    <span>Interactive HTML</span>
+                  {:else}
+                    <FileText size={13} />
+                    <span>Markdown</span>
+                  {/if}
+                </span>
+
+                {#if artifact.archived}
+                  <span class="type-badge tag-badge-archived" title="This artifact is archived">
+                    <Archive size={12} />
+                    <span>Archived</span>
+                  </span>
                 {/if}
-              </span>
+              </div>
 
               <span class="art-date">
                 <Calendar size={12} />
@@ -304,15 +459,38 @@
             {/if}
 
             <div class="art-card-actions">
-              <a 
-                href="/api/raw/{data.project.slug}/{artifact.file}" 
-                target="_blank" 
-                rel="noreferrer"
-                class="btn-icon" 
-                title="Open raw file in new tab"
-              >
-                <ExternalLink size={15} />
-              </a>
+              <div class="art-action-group-left">
+                <a 
+                  href="/api/raw/{data.project.slug}/{artifact.file}" 
+                  target="_blank" 
+                  rel="noreferrer"
+                  class="btn-icon" 
+                  title="Open raw file in new tab"
+                >
+                  <ExternalLink size={15} />
+                </a>
+
+                <button 
+                  class="btn-icon" 
+                  class:btn-active-archived={artifact.archived}
+                  onclick={() => toggleArchive(artifact)} 
+                  title={artifact.archived ? 'Restore artifact to active' : 'Archive artifact'}
+                >
+                  {#if artifact.archived}
+                    <ArchiveRestore size={15} class="text-amber-400" />
+                  {:else}
+                    <Archive size={15} />
+                  {/if}
+                </button>
+
+                <button 
+                  class="btn-icon btn-icon-danger" 
+                  onclick={() => promptDelete(artifact)} 
+                  title="Delete artifact permanently"
+                >
+                  <Trash2 size={15} />
+                </button>
+              </div>
 
               <a 
                 href="/project/{data.project.slug}/artifact/{artifact.id}" 
@@ -328,8 +506,8 @@
     {:else}
       <!-- List View -->
       <div class="artifacts-list glass-panel">
-        {#each filteredArtifacts as artifact}
-          <div class="list-item">
+        {#each filteredArtifacts as artifact (artifact.id)}
+          <div class="list-item" class:item-archived={artifact.archived}>
             <div class="list-item-left">
               <span class="type-badge" class:tag-badge-html={artifact.type === 'html'} class:tag-badge-md={artifact.type === 'markdown'}>
                 {#if artifact.type === 'html'}
@@ -340,6 +518,13 @@
                   <span>MD</span>
                 {/if}
               </span>
+
+              {#if artifact.archived}
+                <span class="type-badge tag-badge-archived" title="Archived">
+                  <Archive size={11} />
+                  <span>Archived</span>
+                </span>
+              {/if}
 
               <div class="list-title-box">
                 <a href="/project/{data.project.slug}/artifact/{artifact.id}" class="list-title-link">
@@ -374,6 +559,27 @@
                 <ExternalLink size={15} />
               </a>
 
+              <button 
+                class="btn-icon" 
+                class:btn-active-archived={artifact.archived}
+                onclick={() => toggleArchive(artifact)} 
+                title={artifact.archived ? 'Restore artifact to active' : 'Archive artifact'}
+              >
+                {#if artifact.archived}
+                  <ArchiveRestore size={15} class="text-amber-400" />
+                {:else}
+                  <Archive size={15} />
+                {/if}
+              </button>
+
+              <button 
+                class="btn-icon btn-icon-danger" 
+                onclick={() => promptDelete(artifact)} 
+                title="Delete artifact permanently"
+              >
+                <Trash2 size={15} />
+              </button>
+
               <a 
                 href="/project/{data.project.slug}/artifact/{artifact.id}" 
                 class="btn-secondary"
@@ -388,6 +594,70 @@
     {/if}
   </section>
 </div>
+
+<!-- Delete Confirmation Modal -->
+{#if deleteModalOpen && artifactToDelete}
+  <div class="modal-backdrop" onclick={() => { if (!isActionPending) deleteModalOpen = false; }} role="presentation">
+    <div class="modal-card glass-panel" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div class="modal-danger-icon">
+          <Trash2 size={22} />
+        </div>
+        <div class="modal-title-box">
+          <h3>Delete Artifact</h3>
+          <p class="modal-subtitle">Permanent action — cannot be undone.</p>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-warning-text">
+          Are you sure you want to permanently delete <strong>{artifactToDelete.title}</strong>?
+        </p>
+        <div class="delete-file-info">
+          <span class="file-label">Catalog & file path:</span>
+          <code class="file-code">.artifacts-manager/{artifactToDelete.file}</code>
+        </div>
+        <p class="modal-subtext">
+          This will remove the entry from <code>manifest.json</code> and delete the file from the local repository directory.
+        </p>
+      </div>
+
+      <div class="modal-actions">
+        <button 
+          type="button" 
+          class="btn-secondary" 
+          disabled={isActionPending} 
+          onclick={() => (deleteModalOpen = false)}
+        >
+          Cancel
+        </button>
+        <button 
+          type="button" 
+          class="btn-danger" 
+          disabled={isActionPending} 
+          onclick={executeDelete}
+        >
+          {#if isActionPending}
+            <RotateCw size={15} class="animate-spin" />
+            <span>Deleting...</span>
+          {:else}
+            <Trash2 size={15} />
+            <span>Delete Permanently</span>
+          {/if}
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
+
+<!-- Toast Notification -->
+{#if toastMessage}
+  <div class="toast-notification glass-panel">
+    <Check size={16} class="text-emerald-400" />
+    <span>{toastMessage}</span>
+    <button class="toast-close" onclick={() => (toastMessage = null)}>×</button>
+  </div>
+{/if}
 
 <style>
   .project-page {
@@ -475,6 +745,14 @@
     border-radius: var(--radius-full);
     font-size: 0.75rem;
     font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .archived-subcount {
+    color: #fbbf24;
+    font-weight: 500;
   }
 
   .header-desc {
@@ -523,7 +801,7 @@
     display: flex;
     align-items: center;
     flex: 1;
-    min-width: 260px;
+    min-width: 240px;
   }
 
   :global(.search-icon) {
@@ -546,7 +824,7 @@
     color: var(--text-muted);
   }
 
-  .type-filter-group {
+  .segmented-control {
     display: flex;
     background: rgba(15, 23, 42, 0.6);
     border: 1px solid var(--border-subtle);
@@ -575,6 +853,24 @@
     background: var(--accent-indigo);
     color: #ffffff;
     box-shadow: var(--shadow-sm);
+  }
+
+  .count-bubble {
+    font-size: 0.7rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.1);
+    font-weight: 600;
+  }
+
+  .filter-btn.active .count-bubble {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+  }
+
+  .count-bubble-amber {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
   }
 
   .dot {
@@ -693,10 +989,27 @@
     transform: translateY(-2px);
   }
 
+  .card-archived {
+    opacity: 0.78;
+    border-color: rgba(245, 158, 11, 0.25);
+  }
+
+  .card-archived:hover {
+    opacity: 1;
+    border-color: rgba(245, 158, 11, 0.45);
+    box-shadow: var(--shadow-lg), 0 0 20px -3px rgba(245, 158, 11, 0.15);
+  }
+
   .art-card-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
+  }
+
+  .badges-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
   }
 
   .type-badge {
@@ -707,6 +1020,12 @@
     border-radius: var(--radius-full);
     font-size: 0.725rem;
     font-weight: 600;
+  }
+
+  .tag-badge-archived {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.3);
   }
 
   .art-date {
@@ -779,6 +1098,18 @@
     margin-top: auto;
   }
 
+  .art-action-group-left {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .btn-icon-danger:hover {
+    color: var(--accent-rose);
+    border-color: rgba(244, 63, 94, 0.4);
+    background: rgba(244, 63, 94, 0.1);
+  }
+
   .view-btn {
     padding: 0.5rem 1rem;
     font-size: 0.85rem;
@@ -809,10 +1140,15 @@
     background: rgba(255, 255, 255, 0.025);
   }
 
+  .item-archived {
+    opacity: 0.8;
+    background: rgba(245, 158, 11, 0.02);
+  }
+
   .list-item-left {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
     min-width: 0;
     flex: 1;
   }
@@ -846,7 +1182,7 @@
   .list-item-right {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
 
   /* Empty state */
@@ -887,5 +1223,178 @@
     font-size: 0.85rem;
     color: #e0f2fe;
     margin-top: 0.5rem;
+  }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 1rem;
+    animation: fadeIn 0.15s ease;
+  }
+
+  .modal-card {
+    max-width: 480px;
+    width: 100%;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    box-shadow: var(--shadow-xl), 0 0 35px -5px rgba(244, 63, 94, 0.25);
+    border-color: rgba(244, 63, 94, 0.3);
+    animation: scaleUp 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .modal-danger-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    background: rgba(244, 63, 94, 0.15);
+    border: 1px solid rgba(244, 63, 94, 0.3);
+    color: var(--accent-rose);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .modal-title-box h3 {
+    font-size: 1.2rem;
+    color: var(--text-primary);
+  }
+
+  .modal-subtitle {
+    font-size: 0.8rem;
+    color: var(--accent-rose);
+  }
+
+  .modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .delete-file-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    background: rgba(0, 0, 0, 0.35);
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .file-label {
+    font-size: 0.725rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .file-code {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--accent-rose);
+    word-break: break-all;
+  }
+
+  .modal-subtext {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  .modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .btn-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: #e11d48;
+    color: #ffffff;
+    padding: 0.55rem 1.1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid #f43f5e;
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+    transition: all 0.15s ease;
+  }
+
+  .btn-danger:hover:not(:disabled) {
+    background: #be123c;
+    box-shadow: 0 6px 16px rgba(225, 29, 72, 0.45);
+    transform: translateY(-1px);
+  }
+
+  .btn-danger:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Toast */
+  .toast-notification {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: var(--radius-md);
+    background: #131b2e;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    box-shadow: var(--shadow-xl), 0 0 25px -5px rgba(16, 185, 129, 0.25);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    z-index: 120;
+    animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .toast-close {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    padding: 0.2rem;
+    line-height: 1;
+  }
+
+  .toast-close:hover {
+    color: var(--text-primary);
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes scaleUp {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(15px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
   }
 </style>
