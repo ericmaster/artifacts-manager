@@ -2,7 +2,6 @@
 title: "ADR-0001: Architecture, Storage Model & SvelteKit Stack"
 type: adr
 status: accepted
-decided_by: ericmaster
 date: 2026-08-18
 ---
 

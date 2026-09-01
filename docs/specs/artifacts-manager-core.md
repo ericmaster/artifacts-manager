@@ -21,8 +21,8 @@ The central registry tracks all local workspaces registered with the artifacts m
   "version": "1.0.0",
   "projects": [
     {
-      "name": "nimbler-ops",
-      "path": "/home/ericmaster/nimbler-ops",
+      "name": "my-project",
+      "path": "/path/to/my-project",
       "registeredAt": "2026-08-18T17:00:00.000Z",
       "lastActiveAt": "2026-08-18T17:00:00.000Z"
     }
@@ -47,8 +47,8 @@ Each registered repository contains an `.artifacts-manager/` folder storing its 
 ```json
 {
   "version": "1.0.0",
-  "projectName": "nimbler-ops",
-  "description": "Nimblersoft Company OS",
+  "projectName": "my-project",
+  "description": "Interactive system architecture and state diagrams",
   "artifacts": [
     {
       "id": "orchestrator-topology",

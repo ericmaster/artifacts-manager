@@ -91,16 +91,16 @@ Central visualizer and management hub for agent-generated HTML/MD artifacts.
   --keep-file                   (Delete only) Keep the underlying file on disk
 
 \x1b[1mExamples:\x1b[0m
-  artman register ~/products/nimblercrm
+  artman register ~/projects/my-app
   artman list
-  artman add --project ~/nimbler-ops \\
+  artman add --project ~/projects/my-app \\
              --file orchestrator-topology.html \\
              --title "Orchestrator Topology" \\
              --desc "Interactive diagram of orchestrator nodes" \\
              --tags "architecture,topology,orchestrator"
-  artman archive orchestrator-topology --project ~/nimbler-ops
-  artman restore orchestrator-topology --project ~/nimbler-ops
-  artman delete orchestrator-topology --project ~/nimbler-ops
+  artman archive orchestrator-topology --project ~/projects/my-app
+  artman restore orchestrator-topology --project ~/projects/my-app
+  artman delete orchestrator-topology --project ~/projects/my-app
 `);
 }
 

@@ -90,7 +90,7 @@ Write the file to `<project-root>/.artifacts-manager/<artifact-slug>.html`.
 ### Step 3: Register in Manifest and Central Registry
 You can either run the CLI helper:
 ```bash
-/home/ericmaster/tools/artifacts-manager/bin/artman add \
+artman add \
   --project "<project-root>" \
   --file "<artifact-slug>.html" \
   --title "<Artifact Title>" \
@@ -103,7 +103,7 @@ Or write/update `<project-root>/.artifacts-manager/manifest.json` and ensure `<p
 ### Step 4: Validate Static and Runtime Behavior
 Run the project validator after registration:
 ```bash
-/home/ericmaster/tools/artifacts-manager/bin/artman validate --project "<project-root>"
+artman validate --project "<project-root>"
 ```
 
 For HTML artifacts, open the Artifacts Manager viewer route and test the sandboxed `iframe.artifact-iframe`, not only the raw file. Exercise every tab, phase, or state that changes a diagram and assert all of the following:

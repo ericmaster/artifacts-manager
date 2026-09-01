@@ -97,7 +97,7 @@
             type="text" 
             class="input-glass"
             bind:value={projectPath} 
-            placeholder="e.g. /home/ericmaster/products/nimblercrm or ~/products/nimblercrm"
+            placeholder="e.g. /path/to/my-project or ~/projects/my-project"
             required
             disabled={loading}
           />
@@ -111,7 +111,7 @@
             type="text" 
             class="input-glass"
             bind:value={customName} 
-            placeholder="e.g. Nimbler CRM"
+            placeholder="e.g. My Project"
             disabled={loading}
           />
         </div>

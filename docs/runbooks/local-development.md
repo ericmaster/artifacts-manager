@@ -39,7 +39,7 @@ The repo ships with a CLI helper in `./bin/artman`:
 ./bin/artman --help
 
 # Register a project directory in ~/.artifacts-manager.json
-./bin/artman register /home/ericmaster/nimbler-ops
+./bin/artman register /path/to/my-project
 
 # List all registered projects and artifact counts
 ./bin/artman list
@@ -48,12 +48,12 @@ The repo ships with a CLI helper in `./bin/artman`:
 ./bin/artman validate --all
 
 # Read-only validation of one project
-./bin/artman validate --project /home/ericmaster/nimbler-ops
+./bin/artman validate --project /path/to/my-project
 
 # Add an artifact to a project manifest and register project
 ./bin/artman add \
-  --project /home/ericmaster/nimbler-ops \
-  --file /home/ericmaster/nimbler-ops/.artifacts-manager/orchestrator-topology.html \
+  --project /path/to/my-project \
+  --file /path/to/my-project/.artifacts-manager/orchestrator-topology.html \
   --title "Orchestrator Topology" \
   --desc "Interactive topology diagram of orchestrator nodes" \
   --tags "architecture,topology,orchestrator"
