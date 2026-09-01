@@ -40,6 +40,9 @@ test('Markdown Mermaid renders, preserves fallback, and HTML artifact inspector 
       await page.goto(`${baseUrl}/project/artifacts-manager/artifact/artifacts-manager-topology`, { waitUntil: 'networkidle' });
       const frame = page.frameLocator('iframe.artifact-iframe');
       await expect(frame.locator('.mermaid svg')).toBeVisible({ timeout: 15_000 });
+      await expect(frame.locator('.error-icon, .error-text, [data-mermaid-state="error"]')).toHaveCount(0);
+      await expect(frame.getByText(/Syntax error|Parse error/i)).toHaveCount(0);
+      expect(await frame.locator('.mermaid svg g.node').count()).toBeGreaterThan(0);
       await frame.locator('.mermaid svg g.node').first().click({ force: true });
       await expect(frame.locator('#panel-title')).toBeVisible();
     } finally {

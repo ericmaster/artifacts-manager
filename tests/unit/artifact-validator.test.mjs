@@ -45,6 +45,14 @@ test('validator fixture reports missing Mermaid source', async () => {
   expect((await validateProject(root)).errors.map((error) => error.rule)).toContain('mermaid-fallback');
 });
 
+test('validator fixture reports Mermaid syntax errors', async () => {
+  const invalid = html().replaceAll('flowchart LR', 'flowchart LR&#10;A -&gt;&gt; B');
+  const root = await fixture({ files: { 'diagram.html': invalid } });
+  const errors = (await validateProject(root)).errors;
+  expect(errors.map((error) => error.rule)).toContain('mermaid-syntax');
+  expect(errors.find((error) => error.rule === 'mermaid-syntax')?.message).toMatch(/Parse error/i);
+});
+
 test('validator fixture reports stale manifest entry', async () => {
   const root = await fixture({ files: { 'diagram.html': html(), 'stale.html': html() } });
   expect((await validateProject(root)).errors.map((error) => error.rule)).toContain('manifest-current');
@@ -71,6 +79,31 @@ test('validator fixture permits the KTH canvas chart allowlist', async () => {
   expect((await validateProject(root)).errors).toEqual([]);
 });
 
+test('skills/with-artifact/assets/grill-questionnaire.html passes validator rules', async () => {
+  const templatePath = path.resolve('skills/with-artifact/assets/grill-questionnaire.html');
+  const content = await fs.readFile(templatePath, 'utf-8');
+  const root = await fixture({
+    name: 'grill-test',
+    artifact: { id: 'grill-questionnaire', file: 'grill-questionnaire.html', tags: ['tailwind', 'mermaid'], createdAt: '2026-09-01T00:00:00.000Z' },
+    files: { 'grill-questionnaire.html': content }
+  });
+  const result = await validateProject(root);
+  expect(result.errors).toEqual([]);
+});
+
+test('skills/with-artifact/assets/system-topology.html passes validator rules', async () => {
+  const templatePath = path.resolve('skills/with-artifact/assets/system-topology.html');
+  const content = await fs.readFile(templatePath, 'utf-8');
+  const root = await fixture({
+    name: 'topology-test',
+    artifact: { id: 'system-topology', file: 'system-topology.html', tags: ['tailwind', 'mermaid'], createdAt: '2026-09-01T00:00:00.000Z' },
+    files: { 'system-topology.html': content }
+  });
+  const result = await validateProject(root);
+  expect(result.errors).toEqual([]);
+});
+
 test('failure output identifies project, file, rule, and line', () => {
   expect(formatResults([{ warnings: [], errors: [{ project: 'fixture', file: 'diagram.html', rule: 'rule', line: 7, message: 'bad' }] }])[0]).toBe('ERROR fixture:diagram.html:7 [rule] bad');
 });
+

@@ -1,5 +1,14 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import DOMPurify from 'dompurify';
+
+// Mermaid's parser imports the browser DOMPurify surface even when no rendering
+// occurs. Supply only the parser-time hooks that are absent from Node's factory.
+DOMPurify.addHook ??= () => {};
+DOMPurify.removeAllHooks ??= () => {};
+DOMPurify.sanitize ??= (value) => value;
+
+const { default: mermaid } = await import('mermaid');
 
 export const TAILWIND_URL = 'https://cdn.tailwindcss.com/3.4.17';
 export const MERMAID_URL = 'https://cdn.jsdelivr.net/npm/mermaid@11.17.1/dist/mermaid.esm.min.mjs';
@@ -45,6 +54,26 @@ async function artifactFiles(directory, prefix = '') {
 function hasMermaidFallback(content) {
   return /class\s*=\s*["'][^"']*\bmermaid\b[^"']*["']/i.test(content)
     && /data-mermaid-source(?:\s|=|>)/i.test(content);
+}
+
+function decodeHtmlEntities(value) {
+  return value
+    .replace(/&#x([0-9a-f]+);/gi, (_, digits) => String.fromCodePoint(Number.parseInt(digits, 16)))
+    .replace(/&#(\d+);/g, (_, digits) => String.fromCodePoint(Number.parseInt(digits, 10)))
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&amp;/gi, '&');
+}
+
+function mermaidSources(content) {
+  const sources = [];
+  const pattern = /data-mermaid-source\s*=\s*(["'])([\s\S]*?)\1/gi;
+  for (const match of content.matchAll(pattern)) {
+    sources.push({ source: decodeHtmlEntities(match[2]), line: lineOf(content, match[0]) });
+  }
+  return sources;
 }
 
 function isDecorativeIcon(svg) {
@@ -149,6 +178,14 @@ export async function validateProject(projectPath) {
       }
       if (!hasMermaidFallback(content)) {
         errors.push(issue(projectName, displayFile, 'mermaid-fallback', 'Mermaid artifacts need class="mermaid" and data-mermaid-source fallback source', lineOf(content, '<body')));
+      }
+      for (const { source, line } of mermaidSources(content)) {
+        try {
+          await mermaid.parse(source);
+        } catch (error) {
+          const message = String(error?.message ?? error).replace(/\s+/g, ' ').trim();
+          errors.push(issue(projectName, displayFile, 'mermaid-syntax', message, line));
+        }
       }
     }
   }

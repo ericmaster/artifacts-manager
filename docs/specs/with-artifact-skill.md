@@ -3,7 +3,7 @@ title: "Spec: with-artifact Skill"
 type: spec
 status: active
 covers: skills/with-artifact/SKILL.md
-last_checked: 2026-08-18
+last_checked: 2026-08-26
 ---
 
 # Spec: `with-artifact` Skill
@@ -34,12 +34,37 @@ The `with-artifact` skill instructs an AI coding agent to generate an explanator
   - Clear typography (`system-ui`, `-apple-system`, `sans-serif`)
 - **Interactivity:** Includes interactive elements such as:
   - Clickable node cards that expand details or inspect code.
-  - Mermaid source for graph-shaped diagrams with `pre.mermaid[data-mermaid-source]` fallback. HTML Mermaid may use `securityLevel: 'loose'` only for named allowlisted local inspector callbacks; labels contain no arbitrary HTML.
+  - Mermaid for graph-shaped data flow, connections, topology, sequence, and vertical-slice phase views; stacked cards remain supporting detail.
+  - Escaped `pre.mermaid[data-mermaid-source]` fallback for every Mermaid diagram. HTML artifacts avoid `<-->` and other HTML-sensitive source; use `---` or explicit `-->` edges.
+- Explicit `mermaid.parse(source)` followed by `mermaid.render(id, source)` with `startOnLoad: false`; never rescan Mermaid-mutated DOM with `mermaid.run()`.
+- `data-mermaid-state="rendered"` on success and readable source with `data-mermaid-state="error"` on failure. HTML Mermaid may use `securityLevel: 'loose'` only for named allowlisted local inspector callbacks; labels contain no arbitrary HTML.
+- Custom component selectors are namespaced or container-scoped so they cannot collide with Mermaid internals such as `g.node`. Mermaid nodes receive no hover transform, transition, or animation unless motion is an explicit artifact requirement.
+- Large Mermaid diagrams retain a readable SVG width inside a focusable, two-axis `overflow: auto` viewport with visible scrollbars; do not force wide graphs to `width: 100%` when that makes their contents unreadable or unreachable.
   - Tabbed sections (e.g. "Overview", "Sequence", "Component Map", "Data Flow").
   - Animated state transitions or step-by-step walkthrough buttons.
 
-### B. Markdown Artifacts
+### B. Grilling & Decision Artifacts (`grill-<slug>.html`)
+- **Template Source:** Seeded from `skills/with-artifact/assets/grill-questionnaire.html`.
+- **Required Widgets:**
+  1. **Frontier lock:** Status indicator and toggle to lock current questions.
+  2. **Dynamic per-question Mermaid slot:** Live Mermaid diagram that updates and highlights active paths upon choice selection.
+  3. **Choice input:** Radio buttons / option cards for recommended and alternate choices.
+  4. **Free-text input:** Textarea for operator notes and rationale.
+  5. **Copy export:** Single action copying fenced Markdown and JSON payload (`schema: 1, kind: "grill-session"`).
+- **Session Export Contract:**
+  JSON payload must include `schema: 1`, `kind: "grill-session"`, `session_slug`, `round`, `frontier_locked`, and an array of `questions` with `id`, `title`, `body`, `recommended`, `choices`, `choice`, `free_text`, and `mermaid`.
+
+### C. Markdown Artifacts
 - **Rich Document:** Standard Markdown with GitHub alerts (`> [!NOTE]`, `> [!IMPORTANT]`, etc.), tables, code blocks with syntax highlighting, and Mermaid code fences (`mermaid`).
+
+### D. Validation Gate
+- Run `artman validate --project <project-root>`; Mermaid fallback sources are parsed with pinned Mermaid grammar.
+- Test the sandboxed Artifacts Manager iframe and every interactive diagram state.
+- Reject `.error-icon`, `.error-text`, `[data-mermaid-state="error"]`, `Syntax error`, `Parse error`, browser console errors, and page errors.
+- Require at least one Mermaid `g.node` per expected graph and verify desktop/mobile overflow.
+- Verify Mermaid nodes keep the same computed transform and document-relative position on hover unless diagram motion was explicitly requested.
+- For diagrams larger than their viewport, verify non-zero scroll range on each required axis and exercise pointer plus arrow-key scrolling inside the diagram without page-level overflow.
+- Never accept SVG presence alone because Mermaid syntax failures are SVGs.
 
 ---
 
@@ -57,5 +82,6 @@ When creating an artifact:
    - `createdAt`: ISO timestamp
     - `updatedAt`: ISO timestamp; preserve existing `id`, `file`, and `createdAt`, updating only this timestamp and relevant lowercase tags during migration.
 3. Register `<project-root>` in `~/.artifacts-manager.json` if not already present.
-4. Output a clickable URL for the user to open the artifact in the `artifacts-manager` web app:
-   `http://localhost:41820/project/<projectSlug>/artifact/<artifactId>`
+4. Output the canonical public URL for the user to open the artifact:
+   `https://artifacts.nimblersoft.com/project/<projectSlug>/artifact/<artifactId>`
+   Treat localhost URLs as local diagnostics only.

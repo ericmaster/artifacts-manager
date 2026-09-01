@@ -1,0 +1,361 @@
+<!-- Spec: docs/specs/with-artifact-skill.md -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grill Questionnaire</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #131b2e;
+      --card-hover: rgba(99, 102, 241, 0.08);
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --indigo: #6366f1;
+      --cyan: #06b6d4;
+      --amber: #f59e0b;
+      --emerald: #10b981;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 1.5rem;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    #frontier-lock {
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      background: rgba(245, 158, 11, 0.08);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+      transition: all 0.2s ease;
+    }
+    #frontier-lock[data-locked="true"] {
+      box-shadow: 0 0 15px -3px rgba(245, 158, 11, 0.25);
+      border-color: var(--amber);
+    }
+    .question-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .choice-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .choice-option:hover {
+      background: var(--card-hover);
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+    .choice-option.selected {
+      background: rgba(99, 102, 241, 0.12);
+      border-color: var(--indigo);
+      box-shadow: 0 0 10px -2px rgba(99, 102, 241, 0.3);
+    }
+    .mermaid-container {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      min-height: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: auto;
+    }
+    .mermaid-container pre.mermaid {
+      margin: 0;
+      white-space: pre-wrap;
+      font-family: ui-monospace, monospace;
+      font-size: 0.85rem;
+    }
+    .mermaid[data-mermaid-state="error"] {
+      color: #fca5a5;
+      font-size: 0.8rem;
+    }
+    textarea, input[type="text"] {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+      font: inherit;
+    }
+    textarea:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 1px var(--cyan);
+    }
+    button.btn-primary {
+      background: var(--indigo);
+      color: #fff;
+      border: 0;
+      border-radius: 8px;
+      padding: 0.6rem 1.1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    button.btn-primary:hover {
+      background: #4f46e5;
+    }
+  </style>
+</head>
+<body>
+  <header id="frontier-lock" data-locked="true">
+    <div class="flex items-center justify-between">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="inline-block w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+          <strong class="text-amber-300 text-sm font-semibold tracking-wide uppercase">Frontier Lock</strong>
+        </div>
+        <p class="text-sm text-slate-300 mt-1">This round's askable questions are locked. Answer these before the next frontier unlocks.</p>
+      </div>
+      <label class="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-200 bg-amber-950/40 px-3 py-1.5 rounded-lg border border-amber-500/30">
+        <input type="checkbox" id="frontier-locked" checked class="accent-amber-500 rounded">
+        <span>Locked for this round</span>
+      </label>
+    </div>
+  </header>
+
+  <main id="questions">
+    <article class="question-card question" data-id="Q1">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+          <span class="px-2 py-0.5 rounded bg-indigo-900/60 text-indigo-300 text-xs font-mono font-bold">Q1</span>
+          <span>Successful outcome</span>
+        </h2>
+        <span class="text-xs text-cyan-400 bg-cyan-950/60 border border-cyan-800/50 px-2 py-0.5 rounded font-mono">Round 1</span>
+      </div>
+
+      <p class="text-slate-300 text-sm mb-1" id="Q1-body">What observable result means this plan succeeded?</p>
+      <p class="text-xs text-slate-400 mb-4 italic" id="Q1-recommended"><span class="text-amber-400 font-semibold not-italic">Recommended:</span> Ship the smallest vertical slice that proves the path.</p>
+
+      <!-- Choice Selection Grid -->
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Decision Options</label>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 choices">
+          <label class="choice-option selected" data-choice-id="smallest-slice">
+            <input type="radio" name="Q1-choice" value="smallest-slice" checked class="mt-1 accent-indigo-500">
+            <div>
+              <div class="text-sm font-medium text-slate-100">Smallest Vertical Slice</div>
+              <div class="text-xs text-slate-400">Prove core path first with minimal footprint</div>
+            </div>
+          </label>
+          <label class="choice-option" data-choice-id="full-scope">
+            <input type="radio" name="Q1-choice" value="full-scope" class="mt-1 accent-indigo-500">
+            <div>
+              <div class="text-sm font-medium text-slate-100">Full Requested Scope</div>
+              <div class="text-xs text-slate-400">Implement all layers and edge cases immediately</div>
+            </div>
+          </label>
+          <label class="choice-option" data-choice-id="other">
+            <input type="radio" name="Q1-choice" value="other" class="mt-1 accent-indigo-500">
+            <div>
+              <div class="text-sm font-medium text-slate-100">Other Approach</div>
+              <div class="text-xs text-slate-400">Provide custom rationale in free text below</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Interactive Decision Diagram Slot -->
+      <div class="mb-4">
+        <div class="flex items-center justify-between mb-1.5">
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Per-question Decision Tree</label>
+          <span class="text-xs text-indigo-400 font-mono" id="Q1-diagram-status">Live diagram synced with choice</span>
+        </div>
+        <div class="mermaid-container" id="Q1-diagram-wrapper">
+          <pre class="mermaid" id="Q1-mermaid" data-mermaid-source="flowchart TD&#10;  outcome[&quot;Successful outcome&quot;] --&gt; slice[&quot;Smallest vertical slice&quot;]&#10;  outcome --&gt; scope[&quot;Full scope&quot;]&#10;  outcome --&gt; other[&quot;Other approach&quot;]&#10;  classDef default fill:#1e293b,stroke:#475569,stroke-width:1px,color:#f8fafc;&#10;  classDef selected fill:#312e81,stroke:#818cf8,stroke-width:2px,color:#fff;&#10;  class slice selected;">flowchart TD
+  outcome["Successful outcome"] --> slice["Smallest vertical slice"]
+  outcome --> scope["Full scope"]
+  outcome --> other["Other approach"]
+  classDef default fill:#1e293b,stroke:#475569,stroke-width:1px,color:#f8fafc;
+  classDef selected fill:#312e81,stroke:#818cf8,stroke-width:2px,color:#fff;
+  class slice selected;</pre>
+        </div>
+      </div>
+
+      <!-- Free-text input -->
+      <div>
+        <label for="Q1-free" class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Free-text input (operator prose)</label>
+        <textarea id="Q1-free" rows="2" placeholder="Operator prose that is not a listed choice, or additional constraints..."></textarea>
+      </div>
+    </article>
+  </main>
+
+  <footer class="mt-6 pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <button type="button" id="copy-export" class="btn-primary flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+        </svg>
+        <span>Copy export</span>
+      </button>
+      <span id="export-status" class="text-sm font-medium text-cyan-400"></span>
+    </div>
+    <div class="text-xs text-slate-500">
+      Exports fenced Markdown + JSON (<span class="font-mono text-slate-400">schema: 1, kind: grill-session</span>)
+    </div>
+  </footer>
+
+  <script>
+    const lock = document.getElementById("frontier-lock");
+    const lockBox = document.getElementById("frontier-locked");
+    if (lockBox && lock) {
+      lockBox.addEventListener("change", () => {
+        lock.dataset.locked = lockBox.checked ? "true" : "false";
+      });
+    }
+
+    // Dynamic Diagram Generator based on choices
+    function getDiagramSource(qId, choiceVal) {
+      if (qId === "Q1") {
+        const activeNode = choiceVal === "full-scope" ? "scope" : (choiceVal === "other" ? "other" : "slice");
+        return `flowchart TD
+  outcome["Successful outcome"] --> slice["Smallest vertical slice"]
+  outcome --> scope["Full scope"]
+  outcome --> other["Other approach"]
+  classDef default fill:#1e293b,stroke:#475569,stroke-width:1px,color:#f8fafc;
+  classDef selected fill:#312e81,stroke:#818cf8,stroke-width:2px,color:#fff;
+  class ${activeNode} selected;`;
+      }
+      return "";
+    }
+
+    function collect() {
+      const q = document.querySelector(".question");
+      const choice = document.querySelector("input[name='Q1-choice']:checked");
+      const mermaidEl = document.getElementById("Q1-mermaid");
+      const currentMermaid = mermaidEl ? (mermaidEl.dataset.mermaidSource || mermaidEl.textContent.trim()) : "";
+
+      return {
+        schema: 1,
+        kind: "grill-session",
+        session_slug: "",
+        round: 1,
+        frontier_locked: lockBox ? lockBox.checked : true,
+        questions: [{
+          id: q ? q.dataset.id : "Q1",
+          title: q && q.querySelector("h2 span:last-child") ? q.querySelector("h2 span:last-child").textContent.trim() : "Successful outcome",
+          body: document.getElementById("Q1-body") ? document.getElementById("Q1-body").textContent.trim() : "",
+          recommended: document.getElementById("Q1-recommended") ? document.getElementById("Q1-recommended").textContent.replace("Recommended:", "").trim() : "",
+          choices: [...document.querySelectorAll("input[name='Q1-choice']")].map((el) => el.value),
+          choice: choice ? choice.value : "",
+          free_text: document.getElementById("Q1-free") ? document.getElementById("Q1-free").value : "",
+          mermaid: currentMermaid
+        }]
+      };
+    }
+
+    function toMarkdown(data) {
+      const lines = ["# Grill export", "", `- frontier_locked: ${data.frontier_locked}`, ""];
+      data.questions.forEach((q) => {
+        lines.push(
+          `## ${q.id} — ${q.title}`,
+          "",
+          q.body,
+          "",
+          `Recommended: ${q.recommended}`,
+          "",
+          `Choice: ${q.choice}`,
+          "",
+          q.free_text,
+          "",
+          "```mermaid",
+          q.mermaid.trim(),
+          "```",
+          ""
+        );
+      });
+      return lines.join("\n");
+    }
+
+    document.getElementById("copy-export").addEventListener("click", async () => {
+      const data = collect();
+      const payload = [
+        "```markdown",
+        toMarkdown(data).trim(),
+        "```",
+        "",
+        "```json",
+        JSON.stringify(data, null, 2),
+        "```"
+      ].join("\n");
+
+      try {
+        await navigator.clipboard.writeText(payload);
+        const status = document.getElementById("export-status");
+        status.textContent = "✓ Copied fenced Markdown plus JSON";
+        setTimeout(() => { status.textContent = ""; }, 4000);
+      } catch (err) {
+        console.error("Clipboard copy failed:", err);
+      }
+    });
+  </script>
+
+  <!-- ADR-0002 Mermaid Runtime Contract -->
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.17.1/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'dark' });
+
+    let renderSeq = 0;
+    async function renderDiagram(element, source) {
+      element.dataset.mermaidSource = source;
+      try {
+        await mermaid.parse(source);
+        const { svg } = await mermaid.render(`grill-diagram-${renderSeq += 1}`, source);
+        element.innerHTML = svg;
+        element.dataset.mermaidState = 'rendered';
+      } catch (err) {
+        element.textContent = source;
+        element.dataset.mermaidState = 'error';
+        console.error('Mermaid render error:', err);
+      }
+    }
+
+    // Initial render of all diagrams
+    const mermaidElements = document.querySelectorAll('.mermaid');
+    for (const el of mermaidElements) {
+      const source = el.dataset.mermaidSource || el.textContent.trim();
+      await renderDiagram(el, source);
+    }
+
+    // Choice change listener to dynamically update the Mermaid diagram
+    document.querySelectorAll("input[name='Q1-choice']").forEach(radio => {
+      radio.addEventListener('change', async (e) => {
+        // Highlight active choice card UI
+        document.querySelectorAll('.choice-option').forEach(card => card.classList.remove('selected'));
+        const parentCard = e.target.closest('.choice-option');
+        if (parentCard) parentCard.classList.add('selected');
+
+        // Dynamically update the Mermaid diagram based on chosen option
+        const qEl = document.querySelector(".question[data-id='Q1']");
+        const diagramEl = document.getElementById("Q1-mermaid");
+        if (qEl && diagramEl) {
+          const newSource = getDiagramSource("Q1", e.target.value);
+          if (newSource) {
+            await renderDiagram(diagramEl, newSource);
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

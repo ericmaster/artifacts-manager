@@ -18,7 +18,9 @@ Multi-project viewer and management hub for agent-generated interactive HTML and
 
 ```
 bin/artman                           # CLI executable for registering projects & managing artifacts (add, archive, restore, delete)
-skills/with-artifact/                # Shipped with-artifact agent skill (SKILL.md)
+skills/with-artifact/                # Shipped with-artifact agent skill (SKILL.md, assets/)
+│   ├── SKILL.md                     # Skill instructions and generation contracts
+│   └── assets/                      # Canonical artifact starter templates (grill-questionnaire.html, system-topology.html)
 src/
 ├── app.css                          # Nimblersoft dark theme & tokens
 ├── app.html                         # Base HTML template
@@ -74,7 +76,7 @@ npm run dev
 - **Iframe Sandboxing.** HTML artifacts are served from `/api/raw/[projectSlug]/[...file]` and rendered inside an isolated `<iframe>` to prevent script execution leaks, global variable collisions, and CSS pollution.
 - **Markdown Rendering.** Markdown is sanitized server-side after `marked`; Mermaid fences render client-only with strict security and readable escaped fallback source.
 - **Artifact Runtime Contract.** HTML artifacts use Tailwind `3.4.17` and Mermaid `11.17.1` from the exact CDN URLs in ADR-0002. Preserve artifact IDs/files/createdAt during migrations.
-- **Validation.** `artman validate` never writes and reports manifest containment/currentness, runtime URLs, Mermaid fallback source, migration identity, and narrow legacy static-SVG warnings. `vespera:kth-irl-self-evaluation` allowlists only `canvas#radar` plus decorative icon SVGs.
+- **Validation.** `artman validate` never writes and reports manifest containment/currentness, runtime URLs, Mermaid fallback syntax, migration identity, and narrow legacy static-SVG warnings. Browser QA must test the sandboxed iframe and reject Mermaid error SVGs/text; SVG presence alone is not success. `vespera:kth-irl-self-evaluation` allowlists only `canvas#radar` plus decorative icon SVGs.
 - **Port Allocation.** Fixed to port `41820` to integrate cleanly into the local development fleet.
 
 ## Data model
@@ -112,7 +114,7 @@ node build/index.js
 
 - Every artifact file must be placed under `.artifacts-manager/` in its project repository.
 - Every artifact MUST be cataloged with an entry in `.artifacts-manager/manifest.json`.
-- HTML artifacts MUST be standalone and self-contained with dark-mode styling matching the Nimblersoft Dark Design System.
+- HTML artifacts MUST be standalone, use only the pinned Tailwind/Mermaid runtime URLs from ADR-0002, and keep all other styling and logic local.
 - Tags must be lowercase, alphanumeric, with hyphens (`[a-z0-9-]+`).
 
 ## Specs

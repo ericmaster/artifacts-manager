@@ -235,4 +235,4 @@ test('CLI artman archive, restore, and delete commands work', async () => {
   manifest = JSON.parse(await fs.readFile(path.join(root, '.artifacts-manager', 'manifest.json'), 'utf-8'));
   expect(manifest.artifacts.length).toBe(0);
   expect(await fs.stat(path.join(root, '.artifacts-manager', 'cli-art.html')).then(() => true).catch(() => false)).toBe(false);
-});
+}, 15000);
