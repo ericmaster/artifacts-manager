@@ -36,4 +36,5 @@ Full setup, commands, and architecture: **[AGENTS.md](AGENTS.md)**.
 
 ## Deployment
 
-Runs locally as a Node.js process on port `41820`. Details in [AGENTS.md](AGENTS.md).
+* **Local Hub**: Runs locally as a Node.js process on port `41820`. Details in [AGENTS.md](AGENTS.md).
+* **Landing Page**: [artifacts-manager.ericmaster.ninja](https://artifacts-manager.ericmaster.ninja) (deployed to Cloudflare Workers from `landing/`).

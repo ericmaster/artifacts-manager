@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artifacts Manager — Multi-Project Viewer & Management Hub for AI Agent Artifacts</title>
+  <meta name="description" content="Multi-project viewer and management hub for agent-generated interactive HTML and Markdown artifacts across all local repositories. Zero-DB, sandboxed iframe execution, and automated validation.">
+  <meta name="keywords" content="AI coding agents, artifacts, visualizer, SvelteKit, CLI, artman, with-artifact, system topology, mermaid, architecture diagrams">
+  <meta property="og:title" content="Artifacts Manager — Visual Hub for Agent Artifacts">
+  <meta property="og:description" content="Zero-DB local-first management hub and sandboxed visualizer for interactive HTML diagrams, topologies, and Markdown specs across all local repositories.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://artifacts-manager.ericmaster.ninja">
+  
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300F0FF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='18' height='18' x='3' y='3' rx='2'/><path d='M3 9h18'/><path d='M9 21V9'/></svg>">
+</head>
+<body>
+
+  <!-- Sticky Header / Navbar -->
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav-wrap">
+        <a href="#" class="brand">
+          <div class="brand-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="18" x="3" y="3" rx="2"/>
+              <path d="M3 9h18"/>
+              <path d="M9 21V9"/>
+            </svg>
+          </div>
+          <span>artifacts-manager</span>
+        </a>
+
+        <ul class="nav-links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#showcase">Live Demos</a></li>
+          <li><a href="#cli">CLI (artman)</a></li>
+          <li><a href="#lifecycle">Agent Flow</a></li>
+          <li><a href="#architecture">Architecture</a></li>
+        </ul>
+
+        <div class="nav-actions">
+          <a href="#quickstart" class="btn btn-primary btn-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            <span>Get Started</span>
+          </a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+        <span>The Visual Hub for Agent-Generated Artifacts</span>
+      </div>
+
+      <h1>
+        Transform Transient Agent Output into <span class="text-gradient">Persistent Interactive Artifacts</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        A zero-DB, local-first management hub and sandboxed visualizer for interactive HTML diagrams, system topologies, decision trees, and Markdown specs across all your repositories.
+      </p>
+
+      <div class="command-strip">
+        <code>$ git clone ~/tools/artifacts-manager &amp;&amp; npm run dev</code>
+        <button class="copy-btn" data-copy="cd ~/tools/artifacts-manager && npm install && npm run dev">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+          </svg>
+          <span>Copy</span>
+        </button>
+      </div>
+
+      <!-- Hero Showcase Mockup -->
+      <div class="mockup-wrap">
+        <div class="mockup-container">
+          <div class="mockup-header">
+            <div class="window-dots">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <div class="mockup-address">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+              <span>http://localhost:41820/project/nimbler-ops</span>
+            </div>
+            <div class="mockup-viewport-controls">
+              <button class="vp-btn active" data-width="100%">100% Desktop</button>
+              <button class="vp-btn" data-width="768px">768px Tablet</button>
+              <button class="vp-btn" data-width="375px">375px Mobile</button>
+            </div>
+          </div>
+
+          <div class="mockup-body" style="display: flex; justify-content: center;">
+            <div id="mockup-viewport-inner" style="width: 100%; transition: max-width 0.3s ease;">
+              <!-- Simulated Dashboard Inside Mockup -->
+              <div style="background: #0d1428; border: 1px solid #1f2a4f; border-radius: 12px; padding: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                  <div>
+                    <h3 style="font-size: 1.15rem; font-weight: 700; color: #f0f4ff; margin-bottom: 2px;">nimbler-ops</h3>
+                    <p style="font-size: 0.8rem; color: #8b95b0;">Nimblersoft Company Operating System • 24 Artifacts</p>
+                  </div>
+                  <div style="display: flex; gap: 8px;">
+                    <span class="mockup-tag-filter active tag-pill" data-tag="all" style="cursor: pointer; background: rgba(0, 240, 255, 0.15); color: #00f0ff; border-color: rgba(0, 240, 255, 0.3);">All</span>
+                    <span class="mockup-tag-filter tag-pill" data-tag="architecture" style="cursor: pointer;">architecture</span>
+                    <span class="mockup-tag-filter tag-pill" data-tag="state-machine" style="cursor: pointer;">state-machine</span>
+                    <span class="mockup-tag-filter tag-pill" data-tag="questionnaire" style="cursor: pointer;">questionnaire</span>
+                  </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+                  <!-- Card 1 -->
+                  <div class="mockup-artifact-card" data-tags="architecture topology state-machine" style="background: #121c38; border: 1px solid #283766; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s ease;">
+                    <div>
+                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 0.7rem; font-weight: 700; background: rgba(0, 240, 255, 0.15); color: #00f0ff; padding: 2px 8px; border-radius: 4px;">HTML Interactive</span>
+                        <span style="font-size: 0.7rem; color: #5a6380;">2h ago</span>
+                      </div>
+                      <h4 style="font-size: 0.95rem; font-weight: 600; color: #f0f4ff; margin-bottom: 6px;">Orchestrator Topology &amp; Flow</h4>
+                      <p style="font-size: 0.8rem; color: #8b95b0; line-height: 1.4; margin-bottom: 12px;">Interactive node graph of background queues, dispatchers, and state transitions.</p>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #1a254d; padding-top: 10px;">
+                      <span style="font-size: 0.75rem; color: #00f0ff; font-family: var(--font-mono);">orchestrator-topology.html</span>
+                      <span style="font-size: 0.75rem; background: #1a2750; color: #7dd3fc; padding: 2px 8px; border-radius: 4px;">View ➔</span>
+                    </div>
+                  </div>
+
+                  <!-- Card 2 -->
+                  <div class="mockup-artifact-card" data-tags="questionnaire grilling decision" style="background: #121c38; border: 1px solid #283766; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s ease;">
+                    <div>
+                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 0.7rem; font-weight: 700; background: rgba(168, 85, 247, 0.15); color: #c084fc; padding: 2px 8px; border-radius: 4px;">HTML Interactive</span>
+                        <span style="font-size: 0.7rem; color: #5a6380;">Yesterday</span>
+                      </div>
+                      <h4 style="font-size: 0.95rem; font-weight: 600; color: #f0f4ff; margin-bottom: 6px;">Agent Memory Storage Grilling</h4>
+                      <p style="font-size: 0.8rem; color: #8b95b0; line-height: 1.4; margin-bottom: 12px;">Stress-test questionnaire evaluating SQLite DO vs D1 Vectorize latency tradeoffs.</p>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #1a254d; padding-top: 10px;">
+                      <span style="font-size: 0.75rem; color: #c084fc; font-family: var(--font-mono);">storage-grill.html</span>
+                      <span style="font-size: 0.75rem; background: #1a2750; color: #7dd3fc; padding: 2px 8px; border-radius: 4px;">View ➔</span>
+                    </div>
+                  </div>
+
+                  <!-- Card 3 -->
+                  <div class="mockup-artifact-card" data-tags="architecture spec mermaid" style="background: #121c38; border: 1px solid #283766; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.2s ease;">
+                    <div>
+                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 0.7rem; font-weight: 700; background: rgba(16, 185, 129, 0.15); color: #34d399; padding: 2px 8px; border-radius: 4px;">Markdown + Mermaid</span>
+                        <span style="font-size: 0.7rem; color: #5a6380;">3d ago</span>
+                      </div>
+                      <h4 style="font-size: 0.95rem; font-weight: 600; color: #f0f4ff; margin-bottom: 6px;">Auth Domain Boundary Spec</h4>
+                      <p style="font-size: 0.8rem; color: #8b95b0; line-height: 1.4; margin-bottom: 12px;">Domain invariants, session schemas, and security boundaries with Mermaid sequence graph.</p>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #1a254d; padding-top: 10px;">
+                      <span style="font-size: 0.75rem; color: #34d399; font-family: var(--font-mono);">auth-boundary.md</span>
+                      <span style="font-size: 0.75rem; background: #1a2750; color: #7dd3fc; padding: 2px 8px; border-radius: 4px;">View ➔</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem vs Solution Section -->
+  <section class="comparison-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge">The Problem &amp; The Solution</span>
+        <h2 class="section-title">Why Developers Need Artifacts Manager</h2>
+        <p class="section-desc">AI coding agents generate rich visual architectures and interactive decision models, but they get trapped in ephemeral logs without proper management.</p>
+      </div>
+
+      <div class="comparison-grid">
+        <!-- Bad -->
+        <div class="comparison-card bad">
+          <div class="card-status-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="15" y1="9" x2="9" y2="15"/>
+              <line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+            <span>The Ephemeral Agent Trap</span>
+          </div>
+          <h3>Transient, Lost Context</h3>
+          <ul>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <span>Diagrams and interactive UIs vanish when the chat session ends.</span>
+            </li>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <span>Artifact files scattered randomly across `tmp/`, `scratch/`, or repo roots.</span>
+            </li>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <span>Global CSS and script collisions when embedding interactive HTML.</span>
+            </li>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <span>No unified multi-project search, tag categorization, or lifecycle archiving.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Good -->
+        <div class="comparison-card good">
+          <div class="card-status-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <span>The Artifacts Manager Hub</span>
+          </div>
+          <h3>Structured, Sandboxed Hub</h3>
+          <ul>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span><strong>Zero-DB JSON Contracts:</strong> Persisted in `.artifacts-manager/manifest.json`.</span>
+            </li>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span><strong>Isolated Sandboxed Iframes:</strong> Full JS, SVGs, and Tailwind run leak-free.</span>
+            </li>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span><strong>Multi-Project Explorer:</strong> Central indexing with real-time tag &amp; text search.</span>
+            </li>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span><strong>Automated Verification:</strong> CLI integrity checks for runtime CDNs and links.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid Section -->
+  <section id="features" class="features-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge">Core Capabilities</span>
+        <h2 class="section-title">Built for Modern AI Coding Fleets</h2>
+        <p class="section-desc">Engineered from first principles with zero database overhead, airtight security boundaries, and responsive developer tooling.</p>
+      </div>
+
+      <div class="features-grid">
+        <!-- Feature 1 -->
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10 9 9 9 8 9"/>
+            </svg>
+          </div>
+          <h3>Zero-DB File System Contracts</h3>
+          <p>All project state and metadata live in pure JSON manifests inside repo folders. Easily committed, diffed, and version-controlled with Git.</p>
+          <div class="feature-tags">
+            <span class="tag-pill">~/.artifacts-manager.json</span>
+            <span class="tag-pill">manifest.json</span>
+          </div>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect width="18" height="18" x="3" y="3" rx="2"/>
+              <path d="M3 9h18"/>
+              <path d="M9 21V9"/>
+            </svg>
+          </div>
+          <h3>Sandboxed Iframe Execution</h3>
+          <p>HTML artifacts are served from isolated raw endpoints and rendered in secure iframes. Run rich JavaScript animations, charts, and Tailwind styling without host conflicts.</p>
+          <div class="feature-tags">
+            <span class="tag-pill">Isolation</span>
+            <span class="tag-pill">Raw Endpoint</span>
+            <span class="tag-pill">XSS Defense</span>
+          </div>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect width="20" height="14" x="2" y="3" rx="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+          <h3>Multi-Viewport Resolution Switcher</h3>
+          <p>Instantly test and inspect artifact responsiveness with built-in 100% Desktop, 768px Tablet, and 375px Mobile viewport presets.</p>
+          <div class="feature-tags">
+            <span class="tag-pill">Desktop 100%</span>
+            <span class="tag-pill">Tablet 768px</span>
+            <span class="tag-pill">Mobile 375px</span>
+          </div>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </div>
+          <h3>Real-Time Search &amp; Tag Filters</h3>
+          <p>Instant multi-faceted search across titles, descriptions, and tags. Toggle between Active and Archived states with permanent delete safeguards.</p>
+          <div class="feature-tags">
+            <span class="tag-pill">Faceted Filter</span>
+            <span class="tag-pill">Lifecycle Tags</span>
+            <span class="tag-pill">Instant Query</span>
+          </div>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <h3>Automated Validation Engine</h3>
+          <p>The CLI read-only validator (`artman validate --all`) checks CDN URLs, Mermaid fallbacks, manifest containment, and path traversal security across your machine.</p>
+          <div class="feature-tags">
+            <span class="tag-pill">ADR-0002</span>
+            <span class="tag-pill">CDN Verification</span>
+            <span class="tag-pill">Integrity Checks</span>
+          </div>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m18 16 4-4-4-4"/>
+              <path d="m6 8-4 4 4 4"/>
+              <path d="m14.5 4-5 16"/>
+            </svg>
+          </div>
+          <h3>First-Class Agent Skill (`with-artifact`)</h3>
+          <p>Shipped skill contract compatible with Antigravity, Claude Code, and Kilo. Agents automatically scaffold, validate, and catalog artifacts in one step.</p>
+          <div class="feature-tags">
+            <span class="tag-pill">SKILL.md</span>
+            <span class="tag-pill">Starter Templates</span>
+            <span class="tag-pill">Autonomous Indexing</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Artifact Showcase Section -->
+  <section id="showcase" class="showcase-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge">Interactive Demos</span>
+        <h2 class="section-title">What Agents Can Generate</h2>
+        <p class="section-desc">Experience the exact interactive templates created by AI coding agents using the `with-artifact` skill.</p>
+      </div>
+
+      <div class="showcase-tabs">
+        <button class="showcase-tab active" data-target="demo-topology">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          <span>System Topology &amp; Architecture</span>
+        </button>
+
+        <button class="showcase-tab" data-target="demo-questionnaire">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 11l3 3L22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          <span>Grill Questionnaire &amp; Decision Tree</span>
+        </button>
+
+        <button class="showcase-tab" data-target="demo-markdown">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          <span>Markdown Spec with Mermaid</span>
+        </button>
+      </div>
+
+      <div class="showcase-viewer">
+        <!-- Panel 1: Topology -->
+        <div id="demo-topology" class="showcase-panel active">
+          <div style="background: #090e1f; border-radius: 12px; padding: 24px; border: 1px solid #1c274a;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #1a254d; padding-bottom: 12px;">
+              <div>
+                <span style="color: #00f0ff; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">Interactive Topology Template</span>
+                <h3 style="font-size: 1.25rem; font-weight: 700; color: #f0f4ff;">Nimblersoft Agent Fabric &amp; Dispatcher Flow</h3>
+              </div>
+              <span class="tag-pill" style="color: #00f0ff; background: rgba(0, 240, 255, 0.1);">Tailwind 3.4.17 + SVG</span>
+            </div>
+
+            <!-- Simulated Interactive Graph Nodes -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
+              <div style="background: #0f1629; border: 1px solid #00f0ff; border-radius: 8px; padding: 16px; text-align: center; box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);">
+                <div style="font-size: 0.75rem; color: #00f0ff; font-weight: 700; margin-bottom: 4px;">INGRESS</div>
+                <div style="font-weight: 600; font-size: 0.95rem;">API Gateway / Proxy</div>
+                <div style="font-size: 0.75rem; color: #8b95b0; margin-top: 4px;">Port 41820 / Cloudflare</div>
+              </div>
+
+              <div style="background: #0f1629; border: 1px solid #a855f7; border-radius: 8px; padding: 16px; text-align: center; box-shadow: 0 0 15px rgba(168, 85, 247, 0.15);">
+                <div style="font-size: 0.75rem; color: #a855f7; font-weight: 700; margin-bottom: 4px;">DISPATCH</div>
+                <div style="font-weight: 600; font-size: 0.95rem;">Agent Task Orchestrator</div>
+                <div style="font-size: 0.75rem; color: #8b95b0; margin-top: 4px;">State Machine &amp; Queues</div>
+              </div>
+
+              <div style="background: #0f1629; border: 1px solid #10b981; border-radius: 8px; padding: 16px; text-align: center; box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);">
+                <div style="font-size: 0.75rem; color: #10b981; font-weight: 700; margin-bottom: 4px;">EXECUTION</div>
+                <div style="font-weight: 600; font-size: 0.95rem;">Sandboxed Iframe Hub</div>
+                <div style="font-size: 0.75rem; color: #8b95b0; margin-top: 4px;">Raw Static Asset Server</div>
+              </div>
+            </div>
+
+            <div style="background: #050a18; border-radius: 8px; padding: 16px; font-family: var(--font-mono); font-size: 0.85rem; color: #8b95b0;">
+              <span style="color: #00f0ff;">Node Relationship:</span> Ingress [GET /api/raw] ➔ Manifest Lookup [manifest.json] ➔ Content Sanitizer ➔ Sandboxed Iframe Client
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 2: Questionnaire -->
+        <div id="demo-questionnaire" class="showcase-panel">
+          <div style="background: #090e1f; border-radius: 12px; padding: 24px; border: 1px solid #1c274a;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #1a254d; padding-bottom: 12px;">
+              <div>
+                <span style="color: #a855f7; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">Autonomous Grilling Template</span>
+                <h3 style="font-size: 1.25rem; font-weight: 700; color: #f0f4ff;">Architectural Decision Stress-Test</h3>
+              </div>
+              <span class="tag-pill" style="color: #c084fc; background: rgba(168, 85, 247, 0.1);">Interactive HTML Form</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+              <div style="background: #0f1629; border: 1px solid #283766; border-radius: 8px; padding: 16px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                  <span style="font-weight: 600; font-size: 0.95rem;">Q1: How should multi-project artifacts store central state?</span>
+                  <span style="font-size: 0.75rem; color: #00f0ff; background: rgba(0, 240, 255, 0.1); padding: 2px 8px; border-radius: 4px;">Resolved: ADR-0001</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+                  <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #cbd5e1; cursor: pointer;">
+                    <input type="radio" name="q1" checked style="accent-color: #00f0ff;">
+                    <span><strong>Option A (Selected):</strong> Zero-DB filesystem JSON manifests (`~/.artifacts-manager.json` + `.artifacts-manager/manifest.json`)</span>
+                  </label>
+                  <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #64748b; cursor: pointer;">
+                    <input type="radio" name="q1" disabled>
+                    <span>Option B: Centralized SQLite daemon on localhost (Requires background DB service)</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 3: Markdown -->
+        <div id="demo-markdown" class="showcase-panel">
+          <div style="background: #090e1f; border-radius: 12px; padding: 24px; border: 1px solid #1c274a;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #1a254d; padding-bottom: 12px;">
+              <div>
+                <span style="color: #10b981; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">Markdown Spec Template</span>
+                <h3 style="font-size: 1.25rem; font-weight: 700; color: #f0f4ff;">Server Sanitization &amp; Mermaid Fences</h3>
+              </div>
+              <span class="tag-pill" style="color: #34d399; background: rgba(16, 185, 129, 0.1);">Marked + Sanitize-HTML + Mermaid 11.17.1</span>
+            </div>
+
+            <div style="background: #070c1c; border-radius: 8px; padding: 20px; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.7; color: #94a3b8; border: 1px solid #1f2a4f;">
+              <span style="color: #a855f7;">```mermaid</span><br>
+              <span style="color: #f0f4ff;">graph TD</span><br>
+              &nbsp;&nbsp;<span style="color: #00f0ff;">A[Agent Session]</span> --&gt; <span style="color: #00f0ff;">B(Invoke with-artifact)</span><br>
+              &nbsp;&nbsp;<span style="color: #00f0ff;">B</span> --&gt; <span style="color: #00f0ff;">C{Write to .artifacts-manager/}</span><br>
+              &nbsp;&nbsp;<span style="color: #00f0ff;">C</span> --&gt; <span style="color: #00f0ff;">D[Update manifest.json]</span><br>
+              &nbsp;&nbsp;<span style="color: #00f0ff;">D</span> --&gt; <span style="color: #00f0ff;">E[Artman Server Viewer on Port 41820]</span><br>
+              <span style="color: #a855f7;">```</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Terminal Simulator Section -->
+  <section id="cli" class="terminal-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge">CLI Tooling</span>
+        <h2 class="section-title">The `artman` Command Line</h2>
+        <p class="section-desc">Manage workspace registrations, lifecycle states, and run contract verification directly from your shell.</p>
+      </div>
+
+      <div class="terminal-wrap">
+        <div class="terminal-tabs">
+          <button class="term-tab active" data-cmd="register">artman register</button>
+          <button class="term-tab" data-cmd="list">artman list</button>
+          <button class="term-tab" data-cmd="archive">artman archive</button>
+          <button class="term-tab" data-cmd="validate">artman validate</button>
+
+          <button id="term-copy-btn" class="copy-btn" style="margin-left: auto;" data-copy="./bin/artman register /home/ericmaster/nimbler-ops">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+              <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+            </svg>
+            <span>Copy Command</span>
+          </button>
+        </div>
+
+        <pre class="terminal-screen" id="terminal-content"><span class="term-prompt">$</span> ./bin/artman register /home/ericmaster/nimbler-ops
+<span class="term-dim">Reading ~/.artifacts-manager.json ...</span>
+<span class="term-dim">Indexing /home/ericmaster/nimbler-ops/.artifacts-manager/manifest.json ...</span>
+<span class="term-success">✓ Registered project:</span> <span class="term-highlight">nimbler-ops</span> (24 active artifacts)
+<span class="term-dim">Catalog updated at ~/.artifacts-manager.json</span>
+<span class="term-prompt">$</span> </pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Agent Lifecycle Section -->
+  <section id="lifecycle" class="lifecycle-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge">Autonomous Workflow</span>
+        <h2 class="section-title">How the Agent Lifecycle Works</h2>
+        <p class="section-desc">Seamless integration between prompt instructions, file generation, manifest indexing, and interactive preview.</p>
+      </div>
+
+      <div class="lifecycle-track">
+        <div class="lifecycle-step">
+          <span class="step-num">Step 01</span>
+          <h4>Agent Prompt</h4>
+          <p>The developer or agent identifies a complex topology, state machine, or decision matrix to illustrate.</p>
+        </div>
+
+        <div class="lifecycle-step">
+          <span class="step-num">Step 02</span>
+          <h4>Skill Execution</h4>
+          <p>The agent loads the `with-artifact` skill and scaffolds a self-contained HTML/Markdown file under `.artifacts-manager/`.</p>
+        </div>
+
+        <div class="lifecycle-step">
+          <span class="step-num">Step 03</span>
+          <h4>Manifest Catalog</h4>
+          <p>Metadata, unique kebab-case ID, description, and tags are written to `.artifacts-manager/manifest.json`.</p>
+        </div>
+
+        <div class="lifecycle-step">
+          <span class="step-num">Step 04</span>
+          <h4>Sandboxed Viewer</h4>
+          <p>Instantly visible in the SvelteKit dashboard on port 41820 with interactive sandboxing and multi-viewport controls.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture & Security Section -->
+  <section id="architecture" class="specs-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge">Security &amp; Architecture</span>
+        <h2 class="section-title">Engineered with Strict Boundaries</h2>
+        <p class="section-desc">Built according to ADR-0001 and ADR-0002 architectural decisions.</p>
+      </div>
+
+      <div class="specs-grid">
+        <div class="spec-card">
+          <h3>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect width="18" height="18" x="3" y="3" rx="2"/>
+              <path d="M3 9h18"/>
+            </svg>
+            <span>Path-Traversal Defense</span>
+          </h3>
+          <p>Raw file server strictly resolves paths within each project's `.artifacts-manager` folder. Any `../` directory escapes are rejected with 403 Forbidden.</p>
+        </div>
+
+        <div class="spec-card">
+          <h3>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span>Server-Side Markdown Sanitizer</span>
+          </h3>
+          <p>Markdown is parsed with `marked` and sanitized with `sanitize-html` at the insertion boundary, enforcing explicit tag, attribute, and protocol allowlists.</p>
+        </div>
+
+        <div class="spec-card">
+          <h3>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+            </svg>
+            <span>Pinned Runtime CDN Contract</span>
+          </h3>
+          <p>Conforms to ADR-0002: Tailwind CSS `3.4.17` and Mermaid `11.17.1` ESM from exact pinned CDN URLs with reliable fallback sources.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section id="quickstart" class="cta-section">
+    <div class="container">
+      <div class="cta-box">
+        <h2>Bring Visual Clarity to Your AI Coding Fleet</h2>
+        <p>Start organizing, inspecting, and archiving your agent-generated visual artifacts across all local repositories in minutes.</p>
+        
+        <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;">
+          <button class="btn btn-primary" data-copy="cd ~/tools/artifacts-manager && npm install && npm run dev">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+              <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+            </svg>
+            <span>Copy Setup Command</span>
+          </button>
+
+          <a href="https://github.com/nimblersoft/artifacts-manager" class="btn btn-secondary" target="_blank" rel="noopener">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+            </svg>
+            <span>GitHub Repository</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="brand">
+          <div class="brand-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect width="18" height="18" x="3" y="3" rx="2"/>
+              <path d="M3 9h18"/>
+              <path d="M9 21V9"/>
+            </svg>
+          </div>
+          <span>artifacts-manager</span>
+        </div>
+
+        <ul class="footer-links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#cli">CLI</a></li>
+          <li><a href="#architecture">Architecture</a></li>
+          <li><a href="https://github.com/nimblersoft/artifacts-manager" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2026 Nimblersoft Inc. All rights reserved. Zero-DB Local-First Agent Infrastructure.</p>
+        <p style="font-family: var(--font-mono); color: #00f0ff;">v1.0.0 • Port 41820</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+</html>

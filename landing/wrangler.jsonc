@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "artifacts-manager-landing",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "."
+  },
+  "routes": [
+    {
+      "pattern": "artifacts-manager.ericmaster.ninja",
+      "custom_domain": true
+    }
+  ]
+}

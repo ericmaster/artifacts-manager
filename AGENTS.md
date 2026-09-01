@@ -18,6 +18,11 @@ Multi-project viewer and management hub for agent-generated interactive HTML and
 
 ```
 bin/artman                           # CLI executable for registering projects & managing artifacts (add, archive, restore, delete)
+landing/                             # Static landing page & Cloudflare Worker (artifacts-manager.ericmaster.ninja)
+│   ├── index.html                   # Landing page markup with interactive demos & mockups
+│   ├── style.css                    # Nimblersoft Dark design system & animations
+│   ├── app.js                       # Interactive terminal simulator & viewport switchers
+│   └── wrangler.jsonc               # Cloudflare Workers static assets deployment config
 skills/with-artifact/                # Shipped with-artifact agent skill (SKILL.md, assets/)
 │   ├── SKILL.md                     # Skill instructions and generation contracts
 │   └── assets/                      # Canonical artifact starter templates (grill-questionnaire.html, system-topology.html)
@@ -102,13 +107,14 @@ npm run test:e2e
 ```
 
 ## Deployment
-
-Runs locally as a Node.js process or dev service on port `41820`.
-
-```bash
-npm run build
-node build/index.js
-```
+ 
+- Local Hub: Runs locally as a Node.js process or dev service on port `41820`.
+- Landing Page: Deployed to Cloudflare Workers with custom domain `artifacts-manager.ericmaster.ninja` (`cd landing && npx wrangler deploy`).
+ 
+ ```bash
+ npm run build
+ node build/index.js
+ ```
 
 ## Conventions
 
