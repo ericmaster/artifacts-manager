@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { MERMAID_INIT } from '$lib/mermaid';
   import type { PageData } from './$types';
   import { 
     ChevronLeft, 
@@ -96,7 +97,7 @@
         loading ??= import(/* @vite-ignore */ mermaidUrl);
         const module = await loading;
         if (version !== renderVersion || !root.isConnected) return;
-        module.default.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'dark', flowchart: { htmlLabels: false } });
+        module.default.initialize({ ...MERMAID_INIT });
 
         for (const [index, diagram] of diagrams.entries()) {
           if (version !== renderVersion || !diagram.isConnected) return;

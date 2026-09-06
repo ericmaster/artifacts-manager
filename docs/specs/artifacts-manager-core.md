@@ -3,7 +3,7 @@ title: "Spec: Artifacts Manager Core"
 type: spec
 status: active
 covers: src/lib/server/registry.ts
-last_checked: 2026-08-18
+last_checked: 2026-09-03
 ---
 
 # Spec: Artifacts Manager Core
@@ -135,5 +135,5 @@ Registers or updates a repository path in `~/.artifacts-manager.json`.
    - Action toolbar: Resolution presets (Desktop 100%, Tablet 768px, Mobile 375px), Toggle Archive / Restore, Delete Artifact (with confirmation modal), Open Raw in New Tab, Copy Link, View Source toggle.
    - Archived notice banner with quick restore/delete actions if artifact is archived.
    - HTML rendering: Sandboxed `<iframe>` for isolation and script safety.
-   - Markdown rendering: `src/lib/server/markdown.ts` parses Markdown and applies `sanitize-html` at the `{@html}` insertion boundary. Its explicit tag and attribute allowlist permits `class`, `data-*`, `href`, and `src`; URLs are limited to `http`, `https`, `mailto`, and relative paths. SVG, event handlers, unsafe URLs, and raw HTML are excluded. Client-only strict Mermaid rendering keeps source escaped and readable on CDN or render failure.
+    - Markdown rendering: `src/lib/server/markdown.ts` parses Markdown and applies `sanitize-html` at the `{@html}` insertion boundary. Its explicit tag and attribute allowlist permits `class`, `data-*`, `href`, `src`, and `tabindex` on `pre`; URLs are limited to `http`, `https`, `mailto`, and relative paths. SVG, event handlers, unsafe URLs, and raw HTML are excluded. Client-only strict Mermaid rendering uses `src/lib/mermaid.ts` (`useMaxWidth: false`, `htmlLabels: false`) so diagrams keep intrinsic SVG size inside a focusable `overflow: auto` viewport; source stays escaped and readable on CDN or render failure.
    - Collapsible metadata sidebar with lifecycle status (`Active` / `Archived`).

@@ -1,9 +1,17 @@
 import { expect, test } from 'vitest';
+import { MERMAID_INIT } from '../../src/lib/mermaid.ts';
 import { MERMAID_RENDER_ERROR, renderMarkdown } from '../../src/lib/server/markdown.ts';
+
+test('Mermaid init keeps intrinsic diagram size', () => {
+  expect(MERMAID_INIT.flowchart.useMaxWidth).toBe(false);
+  expect(MERMAID_INIT.flowchart.htmlLabels).toBe(false);
+  expect(MERMAID_INIT.sequence.useMaxWidth).toBe(false);
+});
 
 test('Mermaid fences preserve escaped readable source', async () => {
   const html = await renderMarkdown('```mermaid\nflowchart LR\n  A[<unsafe>] --> B\n```');
   expect(html).toMatch(/<pre class="mermaid" data-mermaid-source="flowchart LR/);
+  expect(html).toMatch(/tabindex="0"/);
   expect(html).toMatch(/A\[&lt;unsafe&gt;\]/);
   expect(html).toMatch(/--&gt; B/);
   expect(html).not.toMatch(/<unsafe>/);

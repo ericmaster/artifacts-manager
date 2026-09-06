@@ -73,16 +73,21 @@
       border-radius: 8px;
       padding: 1rem;
       min-height: 140px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow-x: auto;
+      overflow: auto;
+      max-width: 100%;
+      scrollbar-width: auto;
     }
     .mermaid-container pre.mermaid {
       margin: 0;
       white-space: pre-wrap;
       font-family: ui-monospace, monospace;
       font-size: 0.85rem;
+    }
+    .mermaid-container svg {
+      display: block;
+      width: auto !important;
+      height: auto !important;
+      max-width: none !important;
     }
     .mermaid[data-mermaid-state="error"] {
       color: #fca5a5;
@@ -181,7 +186,7 @@
           <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Per-question Decision Tree</label>
           <span class="text-xs text-indigo-400 font-mono" id="Q1-diagram-status">Live diagram synced with choice</span>
         </div>
-        <div class="mermaid-container" id="Q1-diagram-wrapper">
+        <div class="mermaid-container" id="Q1-diagram-wrapper" tabindex="0">
           <pre class="mermaid" id="Q1-mermaid" data-mermaid-source="flowchart TD&#10;  outcome[&quot;Successful outcome&quot;] --&gt; slice[&quot;Smallest vertical slice&quot;]&#10;  outcome --&gt; scope[&quot;Full scope&quot;]&#10;  outcome --&gt; other[&quot;Other approach&quot;]&#10;  classDef default fill:#1e293b,stroke:#475569,stroke-width:1px,color:#f8fafc;&#10;  classDef selected fill:#312e81,stroke:#818cf8,stroke-width:2px,color:#fff;&#10;  class slice selected;">flowchart TD
   outcome["Successful outcome"] --> slice["Smallest vertical slice"]
   outcome --> scope["Full scope"]
@@ -313,7 +318,7 @@
   <!-- ADR-0002 Mermaid Runtime Contract -->
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.17.1/dist/mermaid.esm.min.mjs';
-    mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'dark' });
+    mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'dark', flowchart: { htmlLabels: false, useMaxWidth: false, wrappingWidth: 240, nodeSpacing: 40, rankSpacing: 56, padding: 12 }, sequence: { useMaxWidth: false }, gantt: { useMaxWidth: false }, class: { useMaxWidth: false }, state: { useMaxWidth: false }, er: { useMaxWidth: false } });
 
     let renderSeq = 0;
     async function renderDiagram(element, source) {

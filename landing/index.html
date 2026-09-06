@@ -3,24 +3,137 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Artifacts Manager — Multi-Project Viewer & Management Hub for AI Agent Artifacts</title>
-  <meta name="description" content="Multi-project viewer and management hub for agent-generated interactive HTML and Markdown artifacts across all local repositories. Zero-DB, sandboxed iframe execution, and automated validation.">
-  <meta name="keywords" content="AI coding agents, artifacts, visualizer, SvelteKit, CLI, artman, with-artifact, system topology, mermaid, architecture diagrams">
-  <meta property="og:title" content="Artifacts Manager — Visual Hub for Agent Artifacts">
-  <meta property="og:description" content="Zero-DB local-first management hub and sandboxed visualizer for interactive HTML diagrams, topologies, and Markdown specs across all local repositories.">
+  <title>Artifacts Manager — Stop Reading LLM Text Walls: Visual Hub for AI Agents</title>
+  
+  <!-- Primary Meta Tags -->
+  <meta name="title" content="Artifacts Manager — Stop Reading LLM Text Walls: Visual Hub for AI Agents">
+  <meta name="description" content="Stop reading LLM text walls. Artifacts Manager is a local-first, zero-DB multi-project management hub and sandboxed visualizer for interactive HTML topologies, state machines, and Markdown specs across your repositories.">
+  <meta name="keywords" content="AI coding agents, Claude Artifacts, local artifacts manager, SvelteKit, artman CLI, agentic workflows, software architecture visualizer, system topology, interactive state machine, zero-DB manifest, intent verification, developer tools, Eric Aguayo">
+  <meta name="author" content="Eric Aguayo (Ericmaster)">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="theme-color" content="#0b0f19">
+  <meta name="application-name" content="Artifacts Manager">
+  <meta name="apple-mobile-web-app-title" content="Artifacts Manager">
+  
+  <link rel="canonical" href="https://artifacts-manager.ericmaster.ninja/">
+  
+  <!-- Open Graph / Facebook / LinkedIn -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://artifacts-manager.ericmaster.ninja">
+  <meta property="og:url" content="https://artifacts-manager.ericmaster.ninja/">
+  <meta property="og:site_name" content="Artifacts Manager">
+  <meta property="og:title" content="Artifacts Manager — Stop Reading LLM Text Walls: Visual Hub for AI Agents">
+  <meta property="og:description" content="Reviewing thousands of lines of LLM markdown is a massive cognitive bottleneck. Artifacts Manager provides a persistent, local-first management hub and sandboxed visualizer for agentic workflows.">
+  <meta property="og:image" content="https://artifacts-manager.ericmaster.ninja/images/og-preview.jpg">
+  <meta property="og:image:secure_url" content="https://artifacts-manager.ericmaster.ninja/images/og-preview.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="675">
+  <meta property="og:image:alt" content="Artifacts Manager — Persistent Visual Hub for AI Agents replacing LLM text walls with interactive topology diagrams">
+  <meta property="og:locale" content="en_US">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@ericmaster">
+  <meta name="twitter:creator" content="@ericmaster">
+  <meta name="twitter:title" content="Artifacts Manager — Stop Reading LLM Text Walls">
+  <meta name="twitter:description" content="Persistent, local-first multi-project hub and sandboxed visualizer for AI agent-generated interactive HTML & Markdown artifacts.">
+  <meta name="twitter:image" content="https://artifacts-manager.ericmaster.ninja/images/og-preview.jpg">
+  <meta name="twitter:image:alt" content="Artifacts Manager UI preview showing interactive architecture visualizer and multi-project dashboard">
+  
+  <!-- Favicons and App Icons -->
+  <link rel="icon" type="image/jpeg" href="/images/app-icon.jpg">
+  <link rel="apple-touch-icon" href="/images/app-icon.jpg">
   
   <!-- Google Fonts: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   
+  <!-- Structured Data / JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://artifacts-manager.ericmaster.ninja/#software",
+        "name": "Artifacts Manager",
+        "alternateName": "artman",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "macOS, Linux, Windows",
+        "description": "A local-first, zero-DB multi-project viewer, sandboxed visualizer, and management hub for AI agent-generated interactive HTML and Markdown artifacts.",
+        "url": "https://artifacts-manager.ericmaster.ninja/",
+        "image": "https://artifacts-manager.ericmaster.ninja/images/og-preview.jpg",
+        "screenshot": [
+          "https://artifacts-manager.ericmaster.ninja/images/og-preview.jpg",
+          "https://artifacts-manager.ericmaster.ninja/images/architecture-visualizer.jpg",
+          "https://artifacts-manager.ericmaster.ninja/images/agent-workflow-ecosystem.jpg"
+        ],
+        "softwareVersion": "1.0.0",
+        "license": "https://opensource.org/licenses/MIT",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Eric Aguayo",
+          "alternateName": "Ericmaster",
+          "url": "https://ericmaster.ninja",
+          "sameAs": [
+            "https://github.com/ericmaster",
+            "https://x.com/ericmaster",
+            "https://www.linkedin.com/in/eric-aguayo/"
+          ]
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Nimblersoft",
+          "url": "https://nimblersoft.com"
+        },
+        "sameAs": [
+          "https://github.com/ericmaster/artifacts-manager",
+          "https://ericmaster.ninja/posts/stop-reading-llm-text-why-i-built-artifacts-manager/"
+        ]
+      },
+      {
+        "@type": "TechArticle",
+        "@id": "https://artifacts-manager.ericmaster.ninja/#article-ref",
+        "headline": "Stop Reading LLM Text Walls: Why I Built a Local Artifacts Manager for Agentic Workflows",
+        "description": "Reviewing thousands of lines of LLM markdown is a massive cognitive bottleneck. How persistent visual artifacts and local-first management transform intent verification in agentic software engineering.",
+        "url": "https://ericmaster.ninja/posts/stop-reading-llm-text-why-i-built-artifacts-manager/",
+        "mainEntityOfPage": "https://ericmaster.ninja/posts/stop-reading-llm-text-why-i-built-artifacts-manager/",
+        "image": "https://artifacts-manager.ericmaster.ninja/images/og-preview.jpg",
+        "datePublished": "2026-09-01T00:00:00Z",
+        "author": {
+          "@type": "Person",
+          "name": "Eric Aguayo",
+          "url": "https://ericmaster.ninja"
+        },
+        "about": {
+          "@id": "https://artifacts-manager.ericmaster.ninja/#software"
+        }
+      }
+    ]
+  }
+  </script>
+  
   <!-- CSS -->
   <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300F0FF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect width='18' height='18' x='3' y='3' rx='2'/><path d='M3 9h18'/><path d='M9 21V9'/></svg>">
 </head>
 <body>
+
+  <!-- Blog Announcement Banner -->
+  <div class="blog-banner-strip">
+    <div class="blog-banner-content">
+      <span class="blog-banner-badge">Blog Deep Dive</span>
+      <a href="https://ericmaster.ninja/posts/stop-reading-llm-text-why-i-built-artifacts-manager/" target="_blank" rel="noopener" class="blog-banner-link">
+        <span><strong>Stop Reading LLM Text Walls:</strong> Why I Built a Local Artifacts Manager for Agentic Workflows</span>
+        <span class="arrow">➔</span>
+      </a>
+    </div>
+  </div>
 
   <!-- Sticky Header / Navbar -->
   <header class="site-header">
@@ -39,6 +152,7 @@
 
         <ul class="nav-links">
           <li><a href="#features">Features</a></li>
+          <li><a href="#visual-showcase">Visuals</a></li>
           <li><a href="#showcase">Live Demos</a></li>
           <li><a href="#cli">CLI (artman)</a></li>
           <li><a href="#lifecycle">Agent Flow</a></li>
@@ -258,6 +372,73 @@
     </div>
   </section>
 
+  <!-- Visual Architecture Showcase Section -->
+  <section id="visual-showcase" class="visual-showcase-section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge">Intent Verification &amp; Architecture</span>
+        <h2 class="section-title">Beyond Disposable Chat Canvases</h2>
+        <p class="section-desc">The bottleneck in modern engineering is intent verification, not code synthesis. Inspect interactive topologies and decision trade-offs in seconds.</p>
+      </div>
+
+      <div class="visual-cards-grid">
+        <!-- Visual Card 1 -->
+        <div class="visual-card">
+          <div class="visual-card-img-wrap">
+            <img src="/images/architecture-visualizer.jpg" alt="Interactive Socratic Grilling and System Topology Visualizer in Artifacts Manager" class="visual-card-img" width="1200" height="675" loading="lazy">
+          </div>
+          <div class="visual-card-body">
+            <div>
+              <span class="visual-card-badge" style="color: var(--color-cyan);">Socratic Grilling &amp; Trade-offs</span>
+              <h3 class="visual-card-title">Interactive Decision Trees &amp; Latency Models</h3>
+              <p class="visual-card-desc">Evaluate conflicting architectural approaches side-by-side with interactive latency benchmarks, database trade-offs (e.g. D1 vs SQLite Durable Objects), and live Mermaid sequence charts.</p>
+            </div>
+            <div class="visual-card-footer">
+              <span class="visual-card-tag">#socratic-grilling #topology</span>
+              <a href="https://ericmaster.ninja/posts/stop-reading-llm-text-why-i-built-artifacts-manager/#1-socratic-grilling-with-visual-trade-offs" target="_blank" rel="noopener" class="tag-pill" style="color: var(--color-cyan); text-decoration: none;">Learn More ➔</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visual Card 2 -->
+        <div class="visual-card">
+          <div class="visual-card-img-wrap">
+            <img src="/images/agent-workflow-ecosystem.jpg" alt="Agentic Software Engineering Ecosystem flow with Claude Code, Gemini, OpenCode and Antigravity into Artifacts Manager" class="visual-card-img" width="1200" height="675" loading="lazy">
+          </div>
+          <div class="visual-card-body">
+            <div>
+              <span class="visual-card-badge" style="color: var(--color-violet);">Multi-Agent Fleet Ecosystem</span>
+              <h3 class="visual-card-title">Zero-DB Local Multi-Project Fleet</h3>
+              <p class="visual-card-desc">AI coding agents across your local repositories (Claude Code, Gemini, OpenCode, Antigravity) emit structured manifests cataloged automatically into the centralized local hub on port 41820.</p>
+            </div>
+            <div class="visual-card-footer">
+              <span class="visual-card-tag">#zero-db #multi-project #artman</span>
+              <a href="https://ericmaster.ninja/posts/stop-reading-llm-text-why-i-built-artifacts-manager/#the-architecture-local-manifests--central-registry" target="_blank" rel="noopener" class="tag-pill" style="color: var(--color-violet); text-decoration: none;">Read Rationale ➔</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visual Card 3 -->
+        <div class="visual-card">
+          <div class="visual-card-img-wrap">
+            <img src="/images/og-preview.jpg" alt="Artifacts Manager — Persistent Visual Hub for AI Agents replacing LLM text walls with interactive topology diagrams" class="visual-card-img" width="1200" height="675" loading="lazy">
+          </div>
+          <div class="visual-card-body">
+            <div>
+              <span class="visual-card-badge" style="color: var(--color-emerald);">Architectural Grounding</span>
+              <h3 class="visual-card-title">Persistent System Records for Agents</h3>
+              <p class="visual-card-desc">Past visual artifacts serve as high-density grounding context for future agent sessions. A structured artifact gives subagents instant clarity without burning thousands of tokens re-ingesting raw code.</p>
+            </div>
+            <div class="visual-card-footer">
+              <span class="visual-card-tag">#intent-verification #sandboxed</span>
+              <a href="https://ericmaster.ninja/posts/stop-reading-llm-text-why-i-built-artifacts-manager/" target="_blank" rel="noopener" class="tag-pill" style="color: var(--color-emerald); text-decoration: none;">Full Story ➔</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Features Grid Section -->
   <section id="features" class="features-section">
     <div class="container">
@@ -410,43 +591,98 @@
           </svg>
           <span>Markdown Spec with Mermaid</span>
         </button>
-      </div>
-
-      <div class="showcase-viewer">
+        <div class="showcase-viewer">
         <!-- Panel 1: Topology -->
         <div id="demo-topology" class="showcase-panel active">
           <div style="background: #090e1f; border-radius: 12px; padding: 24px; border: 1px solid #1c274a;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #1a254d; padding-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #1a254d; padding-bottom: 12px; flex-wrap: wrap; gap: 8px;">
               <div>
                 <span style="color: #00f0ff; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">Interactive Topology Template</span>
                 <h3 style="font-size: 1.25rem; font-weight: 700; color: #f0f4ff;">Nimblersoft Agent Fabric &amp; Dispatcher Flow</h3>
+                <p style="font-size: 0.82rem; color: #8b95b0; margin-top: 2px;">Click any node to inspect system boundary, protocols, and runtime contract.</p>
               </div>
-              <span class="tag-pill" style="color: #00f0ff; background: rgba(0, 240, 255, 0.1);">Tailwind 3.4.17 + SVG</span>
+              <span class="tag-pill" style="color: #00f0ff; background: rgba(0, 240, 255, 0.1);">Tailwind 3.4.17 + Mermaid 11.17.1</span>
             </div>
 
-            <!-- Simulated Interactive Graph Nodes -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
-              <div style="background: #0f1629; border: 1px solid #00f0ff; border-radius: 8px; padding: 16px; text-align: center; box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);">
-                <div style="font-size: 0.75rem; color: #00f0ff; font-weight: 700; margin-bottom: 4px;">INGRESS</div>
-                <div style="font-weight: 600; font-size: 0.95rem;">API Gateway / Proxy</div>
-                <div style="font-size: 0.75rem; color: #8b95b0; margin-top: 4px;">Port 41820 / Cloudflare</div>
+            <div class="topology-layout">
+              <!-- Left: Node Selector & Live Mermaid Flowchart -->
+              <div>
+                <div class="topology-nodes-grid">
+                  <div class="topo-node-card active" data-node-id="gateway">
+                    <span class="topo-node-badge">01 • Ingress</span>
+                    <div class="topo-node-title">API Gateway &amp; Proxy</div>
+                    <div class="topo-node-sub">Port 41820 / Cloudflare Edge / SSL &amp; Auth Guard</div>
+                  </div>
+
+                  <div class="topo-node-card" data-node-id="orchestrator">
+                    <span class="topo-node-badge" style="color: #c084fc;">02 • Dispatch</span>
+                    <div class="topo-node-title">Task Orchestrator</div>
+                    <div class="topo-node-sub">Queue Dispatcher, State Machine &amp; Retry Manager</div>
+                  </div>
+
+                  <div class="topo-node-card" data-node-id="sandbox">
+                    <span class="topo-node-badge" style="color: #34d399;">03 • Execution</span>
+                    <div class="topo-node-title">Sandboxed Iframe Hub</div>
+                    <div class="topo-node-sub">Isolated HTML/JS Execution &amp; Raw Static File Bridge</div>
+                  </div>
+
+                  <div class="topo-node-card" data-node-id="storage">
+                    <span class="topo-node-badge" style="color: #fbbf24;">04 • Persistence</span>
+                    <div class="topo-node-title">Zero-DB Manifests</div>
+                    <div class="topo-node-sub">Local JSON Filesystem Catalogs &amp; Central Index</div>
+                  </div>
+                </div>
+
+                <!-- Live Mermaid Architecture Diagram -->
+                <div class="topology-diagram-card">
+                  <div style="font-size: 0.75rem; font-family: var(--font-mono); color: #7dd3fc; margin-bottom: 8px; width: 100%; text-align: left; display: flex; justify-content: space-between;">
+                    <span>ARCHITECTURE DATAFLOW</span>
+                    <span style="color: #5a6380;">flowchart LR</span>
+                  </div>
+                  <pre class="mermaid" id="topology-mermaid" data-mermaid-source="flowchart LR
+  client[&quot;Client Browser (41820)&quot;] --&gt; gateway[&quot;API Gateway&quot;]
+  gateway --&gt; orchestrator[&quot;Task Orchestrator&quot;]
+  orchestrator --&gt; sandbox[&quot;Sandboxed Iframe Hub&quot;]
+  sandbox --&gt; storage[&quot;Zero-DB Manifests&quot;]
+  classDef default fill:#0d152c,stroke:#252f55,stroke-width:1px,color:#f0f4ff;
+  classDef active fill:#132247,stroke:#00f0ff,stroke-width:2px,color:#00f0ff;
+  class gateway active;">flowchart LR
+  client["Client Browser (41820)"] --> gateway["API Gateway"]
+  gateway --> orchestrator["Task Orchestrator"]
+  orchestrator --> sandbox["Sandboxed Iframe Hub"]
+  sandbox --> storage["Zero-DB Manifests"]
+  classDef default fill:#0d152c,stroke:#252f55,stroke-width:1px,color:#f0f4ff;
+  classDef active fill:#132247,stroke:#00f0ff,stroke-width:2px,color:#00f0ff;
+  class gateway active;</pre>
+                </div>
               </div>
 
-              <div style="background: #0f1629; border: 1px solid #a855f7; border-radius: 8px; padding: 16px; text-align: center; box-shadow: 0 0 15px rgba(168, 85, 247, 0.15);">
-                <div style="font-size: 0.75rem; color: #a855f7; font-weight: 700; margin-bottom: 4px;">DISPATCH</div>
-                <div style="font-weight: 600; font-size: 0.95rem;">Agent Task Orchestrator</div>
-                <div style="font-size: 0.75rem; color: #8b95b0; margin-top: 4px;">State Machine &amp; Queues</div>
-              </div>
+              <!-- Right: Inspector Detail Pane -->
+              <div class="topo-inspector-card" id="topo-inspector">
+                <div class="topo-inspector-header">
+                  <span class="topo-node-badge" id="topo-inspect-badge">01 • Ingress Layer</span>
+                  <h4 class="topo-inspector-title" id="topo-inspect-title">API Gateway &amp; Ingress</h4>
+                </div>
 
-              <div style="background: #0f1629; border: 1px solid #10b981; border-radius: 8px; padding: 16px; text-align: center; box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);">
-                <div style="font-size: 0.75rem; color: #10b981; font-weight: 700; margin-bottom: 4px;">EXECUTION</div>
-                <div style="font-weight: 600; font-size: 0.95rem;">Sandboxed Iframe Hub</div>
-                <div style="font-size: 0.75rem; color: #8b95b0; margin-top: 4px;">Raw Static Asset Server</div>
-              </div>
-            </div>
+                <p class="topo-inspector-desc" id="topo-inspect-desc">
+                  Handles TLS termination, routing, port 41820 allocation, and path-traversal security verification before passing requests to internal handlers.
+                </p>
 
-            <div style="background: #050a18; border-radius: 8px; padding: 16px; font-family: var(--font-mono); font-size: 0.85rem; color: #8b95b0;">
-              <span style="color: #00f0ff;">Node Relationship:</span> Ingress [GET /api/raw] ➔ Manifest Lookup [manifest.json] ➔ Content Sanitizer ➔ Sandboxed Iframe Client
+                <div class="topo-meta-item">
+                  <span class="topo-meta-label">Security Boundary</span>
+                  <div class="topo-meta-val" id="topo-inspect-sec">Path-traversal guard (403 on ../ escapes)</div>
+                </div>
+
+                <div class="topo-meta-item">
+                  <span class="topo-meta-label">Network &amp; File Endpoint</span>
+                  <div class="topo-meta-val" id="topo-inspect-endpoint">http://127.0.0.1:41820/api/raw/*</div>
+                </div>
+
+                <div class="topo-meta-item">
+                  <span class="topo-meta-label">Runtime Contract</span>
+                  <div class="topo-meta-val" id="topo-inspect-contract">ADR-0001 &amp; ADR-0002 Verified</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -454,54 +690,356 @@
         <!-- Panel 2: Questionnaire -->
         <div id="demo-questionnaire" class="showcase-panel">
           <div style="background: #090e1f; border-radius: 12px; padding: 24px; border: 1px solid #1c274a;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #1a254d; padding-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #1a254d; padding-bottom: 12px; flex-wrap: wrap; gap: 8px;">
               <div>
                 <span style="color: #a855f7; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">Autonomous Grilling Template</span>
                 <h3 style="font-size: 1.25rem; font-weight: 700; color: #f0f4ff;">Architectural Decision Stress-Test</h3>
               </div>
-              <span class="tag-pill" style="color: #c084fc; background: rgba(168, 85, 247, 0.1);">Interactive HTML Form</span>
+              <span class="tag-pill" style="color: #c084fc; background: rgba(168, 85, 247, 0.1);">Interactive HTML Form + Live Mermaid</span>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 14px;">
-              <div style="background: #0f1629; border: 1px solid #283766; border-radius: 8px; padding: 16px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                  <span style="font-weight: 600; font-size: 0.95rem;">Q1: How should multi-project artifacts store central state?</span>
-                  <span style="font-size: 0.75rem; color: #00f0ff; background: rgba(0, 240, 255, 0.1); padding: 2px 8px; border-radius: 4px;">Resolved: ADR-0001</span>
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
-                  <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #cbd5e1; cursor: pointer;">
-                    <input type="radio" name="q1" checked style="accent-color: #00f0ff;">
-                    <span><strong>Option A (Selected):</strong> Zero-DB filesystem JSON manifests (`~/.artifacts-manager.json` + `.artifacts-manager/manifest.json`)</span>
-                  </label>
-                  <label style="display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: #64748b; cursor: pointer;">
-                    <input type="radio" name="q1" disabled>
-                    <span>Option B: Centralized SQLite daemon on localhost (Requires background DB service)</span>
-                  </label>
+            <!-- Frontier Lock Banner -->
+            <div class="frontier-lock-banner" id="frontier-lock-box" data-locked="true">
+              <div class="frontier-lock-indicator">
+                <span class="pulse-dot-amber"></span>
+                <div>
+                  <strong style="color: #fbbf24; font-size: 0.85rem; text-transform: uppercase; font-family: var(--font-mono);">Frontier Lock: Round 1 Active</strong>
+                  <p style="font-size: 0.78rem; color: #cbd5e1; margin-top: 2px;">2 architectural decisions locked for this review cycle. Answer both to proceed.</p>
                 </div>
               </div>
+              <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #fef3c7; cursor: pointer;">
+                <input type="checkbox" id="frontier-lock-checkbox" checked style="accent-color: #f59e0b;">
+                <span>Locked for this round</span>
+              </label>
+            </div>
+
+            <div class="grill-questions-list">
+              <!-- Question 1 -->
+              <article class="grill-q-card" data-qid="q1">
+                <div class="grill-q-header">
+                  <div class="grill-q-badge">
+                    <span class="q-number-chip">Q1</span>
+                    <h4 class="grill-q-title">State Persistence Strategy</h4>
+                  </div>
+                  <span class="tag-pill" style="color: #00f0ff; background: rgba(0, 240, 255, 0.1);">Round 1</span>
+                </div>
+
+                <p class="grill-q-body">How should multi-project artifacts store central state and manifest indexes across local repositories?</p>
+                <div class="grill-recommended">
+                  <strong style="color: #f59e0b;">Recommended:</strong> Zero-DB filesystem JSON manifests (`~/.artifacts-manager.json` + `manifest.json`).
+                </div>
+
+                <!-- Q1 Choices -->
+                <div>
+                  <label style="display: block; font-size: 0.72rem; font-family: var(--font-mono); color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">Decision Options</label>
+                  <div class="grill-choices-grid">
+                    <label class="grill-choice-card selected" data-choice="zero-db">
+                      <input type="radio" name="q1-choice" value="zero-db" checked>
+                      <div class="grill-choice-content">
+                        <div class="grill-choice-title">Zero-DB JSON Filesystem</div>
+                        <div class="grill-choice-desc">Pure JSON manifests inside repos. Git-trackable and zero background daemons.</div>
+                      </div>
+                    </label>
+
+                    <label class="grill-choice-card" data-choice="sqlite-daemon">
+                      <input type="radio" name="q1-choice" value="sqlite-daemon">
+                      <div class="grill-choice-content">
+                        <div class="grill-choice-title">Central SQLite Daemon</div>
+                        <div class="grill-choice-desc">Local SQLite instance on localhost. Requires persistent background daemon service.</div>
+                      </div>
+                    </label>
+
+                    <label class="grill-choice-card" data-choice="cloud-d1">
+                      <input type="radio" name="q1-choice" value="cloud-d1">
+                      <div class="grill-choice-content">
+                        <div class="grill-choice-title">Cloudflare D1 &amp; KV Sync</div>
+                        <div class="grill-choice-desc">Edge relational storage with local background sync. Requires network credentials.</div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Q1 Live Decision Tree Diagram -->
+                <div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span style="font-size: 0.72rem; font-family: var(--font-mono); color: #c084fc; text-transform: uppercase;">Per-Question Decision Tree (Live Synced)</span>
+                    <span style="font-size: 0.72rem; font-family: var(--font-mono); color: #5a6380;">flowchart TD</span>
+                  </div>
+                  <div class="grill-diagram-wrapper">
+                    <pre class="mermaid" id="q1-mermaid" data-mermaid-source="flowchart TD
+  q1[&quot;Persistence Strategy&quot;] --&gt; optA[&quot;Zero-DB Filesystem JSON&quot;]
+  q1 --&gt; optB[&quot;Central SQLite Daemon&quot;]
+  q1 --&gt; optC[&quot;Cloudflare D1 &amp; KV&quot;]
+  classDef default fill:#0d152c,stroke:#252f55,stroke-width:1px,color:#f0f4ff;
+  classDef selected fill:#2e1065,stroke:#c084fc,stroke-width:2px,color:#fff;
+  class optA selected;">flowchart TD
+  q1["Persistence Strategy"] --> optA["Zero-DB Filesystem JSON"]
+  q1 --> optB["Central SQLite Daemon"]
+  q1 --> optC["Cloudflare D1 & KV"]
+  classDef default fill:#0d152c,stroke:#252f55,stroke-width:1px,color:#f0f4ff;
+  classDef selected fill:#2e1065,stroke:#c084fc,stroke-width:2px,color:#fff;
+  class optA selected;</pre>
+                  </div>
+                </div>
+
+                <!-- Q1 Free-text -->
+                <div>
+                  <label for="q1-free" style="display: block; font-size: 0.72rem; font-family: var(--font-mono); color: #94a3b8; text-transform: uppercase; margin-bottom: 6px;">Operator Prose &amp; Custom Constraints (Q1)</label>
+                  <textarea id="q1-free" class="grill-free-input" rows="2" placeholder="Custom rationale, storage path overrides, or performance constraints...">Zero-DB approach chosen to keep repository self-contained and version-controlled without daemon dependencies.</textarea>
+                </div>
+              </article>
+
+              <!-- Question 2 -->
+              <article class="grill-q-card" data-qid="q2">
+                <div class="grill-q-header">
+                  <div class="grill-q-badge">
+                    <span class="q-number-chip">Q2</span>
+                    <h4 class="grill-q-title">Execution Isolation &amp; Sandboxing</h4>
+                  </div>
+                  <span class="tag-pill" style="color: #00f0ff; background: rgba(0, 240, 255, 0.1);">Round 1</span>
+                </div>
+
+                <p class="grill-q-body">How should interactive HTML artifacts with arbitrary JavaScript and custom styles be safely isolated from the host app?</p>
+                <div class="grill-recommended">
+                  <strong style="color: #f59e0b;">Recommended:</strong> Sandboxed iframes served from dedicated `/api/raw/` endpoint with strict CSP.
+                </div>
+
+                <!-- Q2 Choices -->
+                <div>
+                  <label style="display: block; font-size: 0.72rem; font-family: var(--font-mono); color: #94a3b8; text-transform: uppercase; margin-bottom: 8px;">Decision Options</label>
+                  <div class="grill-choices-grid">
+                    <label class="grill-choice-card selected" data-choice="iframe-sandbox">
+                      <input type="radio" name="q2-choice" value="iframe-sandbox" checked>
+                      <div class="grill-choice-content">
+                        <div class="grill-choice-title">Sandboxed Iframe Hub</div>
+                        <div class="grill-choice-desc">Dedicated iframe with allow-scripts. Prevents global CSS bleed and JS scope pollution.</div>
+                      </div>
+                    </label>
+
+                    <label class="grill-choice-card" data-choice="shadow-dom">
+                      <input type="radio" name="q2-choice" value="shadow-dom">
+                      <div class="grill-choice-content">
+                        <div class="grill-choice-title">Shadow DOM Web Components</div>
+                        <div class="grill-choice-desc">Encapsulated CSS in same DOM. Shares JavaScript execution context with the viewer.</div>
+                      </div>
+                    </label>
+
+                    <label class="grill-choice-card" data-choice="static-svg">
+                      <input type="radio" name="q2-choice" value="static-svg">
+                      <div class="grill-choice-content">
+                        <div class="grill-choice-title">Static Pre-rendered SVG</div>
+                        <div class="grill-choice-desc">No dynamic JS allowed. Converts diagrams to static vectors at generation time.</div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Q2 Live Decision Tree Diagram -->
+                <div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <span style="font-size: 0.72rem; font-family: var(--font-mono); color: #c084fc; text-transform: uppercase;">Per-Question Decision Tree (Live Synced)</span>
+                    <span style="font-size: 0.72rem; font-family: var(--font-mono); color: #5a6380;">flowchart TD</span>
+                  </div>
+                  <div class="grill-diagram-wrapper">
+                    <pre class="mermaid" id="q2-mermaid" data-mermaid-source="flowchart TD
+  q2[&quot;Sandboxing Strategy&quot;] --&gt; optA[&quot;Sandboxed Iframe Hub&quot;]
+  q2 --&gt; optB[&quot;Shadow DOM Web Components&quot;]
+  q2 --&gt; optC[&quot;Static Pre-rendered SVG&quot;]
+  classDef default fill:#0d152c,stroke:#252f55,stroke-width:1px,color:#f0f4ff;
+  classDef selected fill:#2e1065,stroke:#c084fc,stroke-width:2px,color:#fff;
+  class optA selected;">flowchart TD
+  q2["Sandboxing Strategy"] --> optA["Sandboxed Iframe Hub"]
+  q2 --> optB["Shadow DOM Web Components"]
+  q2 --> optC["Static Pre-rendered SVG"]
+  classDef default fill:#0d152c,stroke:#252f55,stroke-width:1px,color:#f0f4ff;
+  classDef selected fill:#2e1065,stroke:#c084fc,stroke-width:2px,color:#fff;
+  class optA selected;</pre>
+                  </div>
+                </div>
+
+                <!-- Q2 Free-text -->
+                <div>
+                  <label for="q2-free" style="display: block; font-size: 0.72rem; font-family: var(--font-mono); color: #94a3b8; text-transform: uppercase; margin-bottom: 6px;">Operator Prose &amp; Custom Constraints (Q2)</label>
+                  <textarea id="q2-free" class="grill-free-input" rows="2" placeholder="Custom CSP headers, allowed script origins, or container constraints...">Requires iframe isolation to prevent third-party charting libraries from leaking into SvelteKit application state.</textarea>
+                </div>
+              </article>
+            </div>
+
+            <!-- Grill Footer Actions -->
+            <div class="grill-footer">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <button type="button" id="grill-copy-export" class="btn btn-primary btn-sm">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                  </svg>
+                  <span>Copy Export (Markdown + JSON)</span>
+                </button>
+                <span id="grill-export-status" style="font-size: 0.8rem; color: #00f0ff; font-weight: 600;"></span>
+              </div>
+              <span style="font-size: 0.75rem; color: #5a6380; font-family: var(--font-mono);">schema: 1, kind: grill-session</span>
             </div>
           </div>
         </div>
 
         <!-- Panel 3: Markdown -->
         <div id="demo-markdown" class="showcase-panel">
-          <div style="background: #090e1f; border-radius: 12px; padding: 24px; border: 1px solid #1c274a;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #1a254d; padding-bottom: 12px;">
+          <div class="md-spec-container">
+            <div class="md-demo-header">
               <div>
                 <span style="color: #10b981; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">Markdown Spec Template</span>
                 <h3 style="font-size: 1.25rem; font-weight: 700; color: #f0f4ff;">Server Sanitization &amp; Mermaid Fences</h3>
               </div>
-              <span class="tag-pill" style="color: #34d399; background: rgba(16, 185, 129, 0.1);">Marked + Sanitize-HTML + Mermaid 11.17.1</span>
+
+              <div class="md-view-controls">
+                <button class="md-view-btn active" data-md-view="rendered">
+                  <span>Rendered Spec (Markdown + Mermaid)</span>
+                </button>
+                <button class="md-view-btn" data-md-view="source">
+                  <span>Raw Markdown Source</span>
+                </button>
+                <button class="copy-btn" id="md-copy-btn" data-copy="# Auth Domain Boundary Spec
+
+Domain invariants, session schemas, and security boundaries.
+
+## Architecture Dataflow
+```mermaid
+sequenceDiagram
+  autonumber
+  actor Operator
+  participant GW as API Gateway (41820)
+  participant Hub as Sandboxed Hub
+  participant FS as Manifest Store (.artifacts-manager)
+  Operator->>GW: GET /project/nimbler-ops/artifact/auth-boundary
+  GW->>FS: Verify path & read manifest.json
+  FS-->>GW: Return artifact metadata
+  GW->>Hub: Mount isolated iframe (/api/raw/...)
+  Hub-->>Operator: Rendered interactive spec & Mermaid SVG
+```
+
+## Security Invariants
+- All artifacts reside under `.artifacts-manager/`
+- Zero external database connections required">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                  </svg>
+                  <span>Copy Spec</span>
+                </button>
+              </div>
             </div>
 
-            <div style="background: #070c1c; border-radius: 8px; padding: 20px; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.7; color: #94a3b8; border: 1px solid #1f2a4f;">
-              <span style="color: #a855f7;">```mermaid</span><br>
-              <span style="color: #f0f4ff;">graph TD</span><br>
-              &nbsp;&nbsp;<span style="color: #00f0ff;">A[Agent Session]</span> --&gt; <span style="color: #00f0ff;">B(Invoke with-artifact)</span><br>
-              &nbsp;&nbsp;<span style="color: #00f0ff;">B</span> --&gt; <span style="color: #00f0ff;">C{Write to .artifacts-manager/}</span><br>
-              &nbsp;&nbsp;<span style="color: #00f0ff;">C</span> --&gt; <span style="color: #00f0ff;">D[Update manifest.json]</span><br>
-              &nbsp;&nbsp;<span style="color: #00f0ff;">D</span> --&gt; <span style="color: #00f0ff;">E[Artman Server Viewer on Port 41820]</span><br>
-              <span style="color: #a855f7;">```</span>
+            <!-- Rendered Markdown View -->
+            <div id="md-rendered-view" class="md-spec-body">
+              <div class="md-breadcrumb">nimbler-ops / .artifacts-manager / auth-boundary.md</div>
+              <h2 class="md-spec-title">Auth Domain Boundary &amp; Session Invariants</h2>
+              
+              <div class="md-tags-row">
+                <span class="tag-pill" style="color: #34d399; background: rgba(16, 185, 129, 0.1);">#architecture</span>
+                <span class="tag-pill" style="color: #38bdf8; background: rgba(56, 189, 248, 0.1);">#security</span>
+                <span class="tag-pill" style="color: #c084fc; background: rgba(168, 85, 247, 0.1);">#domain-model</span>
+                <span class="tag-pill" style="color: #fbbf24; background: rgba(251, 191, 36, 0.1);">#marked-sanitized</span>
+              </div>
+
+              <p style="font-size: 0.9rem; color: #cbd5e1; line-height: 1.6;">
+                This document defines the strict isolation boundaries for agent-generated visual artifacts. Markdown artifacts are parsed server-side with <code>marked</code> and cleansed with <code>sanitize-html</code> before rendering client-side Mermaid diagrams.
+              </p>
+
+              <div class="md-alert">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2" style="flex-shrink: 0; margin-top: 2px;">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <div>
+                  <strong style="color: #00f0ff;">Security Invariant:</strong> Raw script tags and arbitrary HTML within markdown fences are strictly stripped on the server boundary. Mermaid SVG diagrams are rendered securely on the client using pinned Mermaid 11.17.1 ESM.
+                </div>
+              </div>
+
+              <div>
+                <h4 style="font-size: 1rem; font-weight: 700; color: #f0f4ff; margin-bottom: 8px;">Artifact Retrieval &amp; Rendering Flow</h4>
+                
+                <!-- Live Rendered Mermaid Sequence Diagram -->
+                <div class="md-mermaid-wrapper">
+                  <pre class="mermaid" id="markdown-spec-mermaid" data-mermaid-source="sequenceDiagram
+  autonumber
+  actor Operator
+  participant GW as API Gateway (41820)
+  participant Hub as Sandboxed Hub
+  participant FS as Manifest Store (.artifacts-manager)
+  Operator->>GW: GET /project/nimbler-ops/artifact/auth-boundary
+  GW->>FS: Verify path &amp; read manifest.json
+  FS-->>GW: Return artifact metadata
+  GW->>Hub: Mount isolated iframe (/api/raw/...)
+  Hub-->>Operator: Rendered interactive spec &amp; Mermaid SVG">sequenceDiagram
+  autonumber
+  actor Operator
+  participant GW as API Gateway (41820)
+  participant Hub as Sandboxed Hub
+  participant FS as Manifest Store (.artifacts-manager)
+  Operator->>GW: GET /project/nimbler-ops/artifact/auth-boundary
+  GW->>FS: Verify path & read manifest.json
+  FS-->>GW: Return artifact metadata
+  GW->>Hub: Mount isolated iframe (/api/raw/...)
+  Hub-->>Operator: Rendered interactive spec & Mermaid SVG</pre>
+                </div>
+              </div>
+
+              <!-- Parameter Table -->
+              <div>
+                <h4 style="font-size: 1rem; font-weight: 700; color: #f0f4ff; margin-bottom: 8px;">Subsystem Contracts</h4>
+                <table class="md-table">
+                  <thead>
+                    <tr>
+                      <th>Layer</th>
+                      <th>Protocol</th>
+                      <th>Enforcement</th>
+                      <th>ADR Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong style="color: #f0f4ff;">Edge Ingress</strong></td>
+                      <td><code>HTTP / SSE</code></td>
+                      <td>Path-traversal regex validation</td>
+                      <td><span style="color: #34d399;">ADR-0001 Verified</span></td>
+                    </tr>
+                    <tr>
+                      <td><strong style="color: #f0f4ff;">Iframe Sandbox</strong></td>
+                      <td><code>allow-scripts</code></td>
+                      <td>Isolated origin, no parent DOM access</td>
+                      <td><span style="color: #34d399;">ADR-0001 Verified</span></td>
+                    </tr>
+                    <tr>
+                      <td><strong style="color: #f0f4ff;">Mermaid Runtime</strong></td>
+                      <td><code>ESM Strict</code></td>
+                      <td>Pinned 11.17.1 CDN runtime</td>
+                      <td><span style="color: #34d399;">ADR-0002 Verified</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Raw Source Code View (Hidden by default) -->
+            <div id="md-source-view" style="display: none; background: #070c1a; border-radius: 10px; padding: 20px; border: 1px solid #1f2a4f; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.7; color: #94a3b8; overflow-x: auto;">
+              <span style="color: #00f0ff;"># Auth Domain Boundary &amp; Session Invariants</span><br><br>
+              Domain invariants, session schemas, and security boundaries.<br><br>
+              <span style="color: #c084fc;">## Architecture Dataflow</span><br><br>
+              <span style="color: #fbbf24;">```mermaid</span><br>
+              <span style="color: #f0f4ff;">sequenceDiagram</span><br>
+              &nbsp;&nbsp;<span style="color: #34d399;">autonumber</span><br>
+              &nbsp;&nbsp;<span style="color: #38bdf8;">actor Operator</span><br>
+              &nbsp;&nbsp;<span style="color: #38bdf8;">participant GW as API Gateway (41820)</span><br>
+              &nbsp;&nbsp;<span style="color: #38bdf8;">participant Hub as Sandboxed Hub</span><br>
+              &nbsp;&nbsp;<span style="color: #38bdf8;">participant FS as Manifest Store (.artifacts-manager)</span><br>
+              &nbsp;&nbsp;<span style="color: #f0f4ff;">Operator-&gt;&gt;GW: GET /project/nimbler-ops/artifact/auth-boundary</span><br>
+              &nbsp;&nbsp;<span style="color: #f0f4ff;">GW-&gt;&gt;FS: Verify path &amp; read manifest.json</span><br>
+              &nbsp;&nbsp;<span style="color: #f0f4ff;">FS--&gt;&gt;GW: Return artifact metadata</span><br>
+              &nbsp;&nbsp;<span style="color: #f0f4ff;">GW-&gt;&gt;Hub: Mount isolated iframe (/api/raw/...)</span><br>
+              &nbsp;&nbsp;<span style="color: #f0f4ff;">Hub--&gt;&gt;Operator: Rendered interactive spec &amp; Mermaid SVG</span><br>
+              <span style="color: #fbbf24;">```</span><br><br>
+              <span style="color: #c084fc;">## Security Invariants</span><br>
+              - All artifacts reside under <code>.artifacts-manager/</code><br>
+              - Zero external database connections required
             </div>
           </div>
         </div>
@@ -525,7 +1063,7 @@
           <button class="term-tab" data-cmd="archive">artman archive</button>
           <button class="term-tab" data-cmd="validate">artman validate</button>
 
-          <button id="term-copy-btn" class="copy-btn" style="margin-left: auto;" data-copy="./bin/artman register /home/ericmaster/nimbler-ops">
+          <button id="term-copy-btn" class="copy-btn" style="margin-left: auto;" data-copy="./bin/artman register /path/to/acme-app">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
               <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
@@ -534,10 +1072,10 @@
           </button>
         </div>
 
-        <pre class="terminal-screen" id="terminal-content"><span class="term-prompt">$</span> ./bin/artman register /home/ericmaster/nimbler-ops
+        <pre class="terminal-screen" id="terminal-content"><span class="term-prompt">$</span> ./bin/artman register /path/to/acme-app
 <span class="term-dim">Reading ~/.artifacts-manager.json ...</span>
-<span class="term-dim">Indexing /home/ericmaster/nimbler-ops/.artifacts-manager/manifest.json ...</span>
-<span class="term-success">✓ Registered project:</span> <span class="term-highlight">nimbler-ops</span> (24 active artifacts)
+<span class="term-dim">Indexing /path/to/acme-app/.artifacts-manager/manifest.json ...</span>
+<span class="term-success">✓ Registered project:</span> <span class="term-highlight">acme-app</span> (6 active artifacts)
 <span class="term-dim">Catalog updated at ~/.artifacts-manager.json</span>
 <span class="term-prompt">$</span> </pre>
       </div>
@@ -642,7 +1180,7 @@
             <span>Copy Setup Command</span>
           </button>
 
-          <a href="https://github.com/nimblersoft/artifacts-manager" class="btn btn-secondary" target="_blank" rel="noopener">
+          <a href="https://github.com/ericmaster/artifacts-manager" class="btn btn-secondary" target="_blank" rel="noopener">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
             </svg>
@@ -670,14 +1208,16 @@
 
         <ul class="footer-links">
           <li><a href="#features">Features</a></li>
+          <li><a href="#visual-showcase">Visuals</a></li>
           <li><a href="#cli">CLI</a></li>
           <li><a href="#architecture">Architecture</a></li>
-          <li><a href="https://github.com/nimblersoft/artifacts-manager" target="_blank" rel="noopener">GitHub</a></li>
+          <li><a href="https://ericmaster.ninja/posts/stop-reading-llm-text-why-i-built-artifacts-manager/" target="_blank" rel="noopener">Blog Story</a></li>
+          <li><a href="https://github.com/ericmaster/artifacts-manager" target="_blank" rel="noopener">GitHub</a></li>
         </ul>
       </div>
 
       <div class="footer-bottom">
-        <p>© 2026 Nimblersoft Inc. All rights reserved. Zero-DB Local-First Agent Infrastructure.</p>
+        <p>© 2026 Nimblersoft Inc. • Built by <a href="https://ericmaster.ninja" target="_blank" rel="noopener" style="color: var(--color-cyan); text-decoration: none;">Ericmaster</a>. Zero-DB Local-First Agent Infrastructure.</p>
         <p style="font-family: var(--font-mono); color: #00f0ff;">v1.0.0 • Port 41820</p>
       </div>
     </div>

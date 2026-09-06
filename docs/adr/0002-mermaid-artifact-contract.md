@@ -11,7 +11,7 @@ date: 2026-08-24
 
 HTML artifacts use Tailwind `https://cdn.tailwindcss.com/3.4.17` and Mermaid `https://cdn.jsdelivr.net/npm/mermaid@11.17.1/dist/mermaid.esm.min.mjs`. Graph-shaped views use Mermaid source with readable `pre.mermaid[data-mermaid-source]` fallback; routine layout uses Tailwind utilities. The HTML iframe sandbox and Open Raw route are unchanged.
 
-Markdown is parsed and sanitized on the server, then Mermaid is imported and rendered client-only with `securityLevel: 'strict'`, deterministic sequential IDs, generic error alerts, and escaped source fallback. HTML artifacts may use Mermaid `securityLevel: 'loose'` only for allowlisted local inspector callbacks.
+Markdown is parsed and sanitized on the server, then Mermaid is imported and rendered client-only with `securityLevel: 'strict'`, deterministic sequential IDs, generic error alerts, and escaped source fallback. Graph types initialize with `useMaxWidth: false` so diagrams keep their intrinsic SVG size; containers scroll instead of shrinking labels. HTML artifacts may use Mermaid `securityLevel: 'loose'` only for allowlisted local inspector callbacks.
 
 ## Consequences
 

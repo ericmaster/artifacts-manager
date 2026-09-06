@@ -34,7 +34,7 @@ HTML is the preferred default. It allows rich vector diagrams, clickable interac
    - Tabbed views: e.g. `[Topology Map]`, `[Data Flow]`, `[Component Breakdown]`, `[Source Code]`.
    - Use Mermaid for graph-shaped diagrams, especially data flow, connections, topology, sequence, and phase-specific vertical slices. Use stacked cards only for supporting detail that is not naturally a graph.
    - Preserve every Mermaid source in escaped `pre.mermaid[data-mermaid-source]` fallback text. Avoid HTML-sensitive Mermaid syntax such as `<-->` inside HTML artifacts; use `---` for an undirected connection or explicit `-->` edges.
-   - Initialize Mermaid with `startOnLoad: false`. For each source, call `mermaid.parse(source)` and then `mermaid.render(id, source)` into its own element. Never use `mermaid.run()` to rescan DOM that Mermaid may already have transformed.
+    - Initialize Mermaid with `startOnLoad: false`, `flowchart.htmlLabels: false`, `wrappingWidth: 240`, and `useMaxWidth: false` for flowchart, sequence, class, state, er, and gantt. Match `src/lib/mermaid.ts`. For each source, call `mermaid.parse(source)` and then `mermaid.render(id, source)` into its own element. Never use `mermaid.run()` to rescan DOM that Mermaid may already have transformed.
    - On render failure, restore the readable source fallback and set `data-mermaid-state="error"`; on success set `data-mermaid-state="rendered"`.
    - HTML Mermaid may use `securityLevel: 'loose'` only for named, allowlisted local inspector callbacks; labels contain no arbitrary HTML.
    - Use Tailwind utilities for routine layout; retain custom CSS only for Mermaid sizing or specialized visuals.
@@ -115,6 +115,8 @@ For HTML artifacts, open the Artifacts Manager viewer route and test the sandbox
 - Any diagram whose readable dimensions exceed its viewport has a non-zero native scroll range on the required axis, and pointer plus arrow-key scrolling can reach the hidden content without moving the whole page.
 
 Do not treat the presence or count of `<svg>` elements as success: Mermaid renders syntax failures as SVGs too.
+
+Keep runtime QA local. From the Artifacts Manager checkout, run `npm run dev` and use `http://127.0.0.1:41820/project/<projectSlug>/artifact/<artifactId>` as the validation target. The loopback viewer needs no tunnel or public exposure.
 
 ### Step 5: Preserve Metadata and Share Direct Link
 Preserve an existing artifact's `id`, `file`, and `createdAt`; update only `updatedAt` and relevant lowercase tags such as `tailwind` and `mermaid`.
@@ -222,6 +224,8 @@ Use this starter template for creating interactive component and architecture ma
     }
     .detail-card h3 { font-size: 1.1rem; margin-bottom: 0.75rem; color: var(--cyan); }
     .detail-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; }
+    .mermaid-viewport { overflow: auto; max-width: 100%; scrollbar-width: auto; }
+    .mermaid svg { display: block; width: auto !important; height: auto !important; max-width: none !important; }
     .mermaid[data-mermaid-state="error"] { white-space: pre-wrap; color: #fecdd3; }
   </style>
 </head>
@@ -248,9 +252,11 @@ Use this starter template for creating interactive component and architecture ma
           <p style="font-size: 0.75rem; color: var(--text-muted);">SQLite State Store</p>
         </div>
       </div>
-      <pre class="mermaid" data-mermaid-source="flowchart LR&#10;gateway --&gt; orchestrator&#10;orchestrator --&gt; storage">flowchart LR
+      <div class="mermaid-viewport mt-4" tabindex="0">
+        <pre class="mermaid" data-mermaid-source="flowchart LR&#10;gateway --&gt; orchestrator&#10;orchestrator --&gt; storage">flowchart LR
 gateway --> orchestrator
 orchestrator --> storage</pre>
+      </div>
     </div>
 
     <div class="detail-card" id="detail-pane">
@@ -289,7 +295,7 @@ orchestrator --> storage</pre>
   </script>
   <script type="module">
     import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.17.1/dist/mermaid.esm.min.mjs';
-    mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'dark' });
+    mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'dark', flowchart: { htmlLabels: false, useMaxWidth: false, wrappingWidth: 240, nodeSpacing: 40, rankSpacing: 56, padding: 12 }, sequence: { useMaxWidth: false }, gantt: { useMaxWidth: false }, class: { useMaxWidth: false }, state: { useMaxWidth: false }, er: { useMaxWidth: false } });
     let diagramSequence = 0;
     for (const element of document.querySelectorAll('.mermaid[data-mermaid-source]')) {
       const source = element.dataset.mermaidSource ?? element.textContent.trim();
@@ -345,4 +351,3 @@ When conducting interactive grilling sessions during pre-plan or design workflow
   ]
 }
 ```
-

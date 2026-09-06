@@ -22,6 +22,8 @@ test('Markdown Mermaid renders, preserves fallback, and HTML artifact inspector 
     try {
       await page.goto(`${baseUrl}/project/artifacts-manager/artifact/with-artifact-skill-guide`, { waitUntil: 'networkidle' });
       await expect(page.locator('pre.mermaid svg')).toBeVisible({ timeout: 15_000 });
+      await expect(page.locator('pre.mermaid').first()).toHaveCSS('overflow-x', 'auto');
+      expect(await page.locator('pre.mermaid svg').first().evaluate((el) => getComputedStyle(el).maxWidth)).toBe('none');
       await expect(page.getByText('Ordinary Markdown and non-Mermaid code fences remain ordinary content.')).toBeVisible();
 
       await page.setViewportSize({ width: 375, height: 800 });
@@ -43,6 +45,7 @@ test('Markdown Mermaid renders, preserves fallback, and HTML artifact inspector 
       await expect(frame.locator('.error-icon, .error-text, [data-mermaid-state="error"]')).toHaveCount(0);
       await expect(frame.getByText(/Syntax error|Parse error/i)).toHaveCount(0);
       expect(await frame.locator('.mermaid svg g.node').count()).toBeGreaterThan(0);
+      expect(await frame.locator('.mermaid svg').first().evaluate((el) => getComputedStyle(el).maxWidth)).toBe('none');
       await frame.locator('.mermaid svg g.node').first().click({ force: true });
       await expect(frame.locator('#panel-title')).toBeVisible();
     } finally {

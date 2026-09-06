@@ -29,7 +29,8 @@ export function sanitizeMarkdownHtml(html: string): string {
     allowedAttributes: {
       '*': ['class', 'data-*'],
       a: ['href', 'title'],
-      img: ['src', 'alt', 'title']
+      img: ['src', 'alt', 'title'],
+      pre: ['tabindex']
     },
     allowedSchemes: ['http', 'https', 'mailto'],
     allowedSchemesAppliedToAttributes: ['href', 'src'],
@@ -44,7 +45,7 @@ export async function renderMarkdown(source: string): Promise<string> {
   renderer.code = ({ text, lang }) => {
     if (lang?.trim().toLowerCase() === 'mermaid') {
       const escaped = escapeHtml(text);
-      return `<pre class="mermaid" data-mermaid-source="${escaped}"><code>${escaped}</code></pre>`;
+      return `<pre class="mermaid" data-mermaid-source="${escaped}" tabindex="0"><code>${escaped}</code></pre>`;
     }
     const language = lang?.trim().toLowerCase().replace(/[^a-z0-9-]/g, '') ?? '';
     return `<pre><code${language ? ` class="language-${language}"` : ''}>${escapeHtml(text)}</code></pre>`;

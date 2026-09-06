@@ -3,7 +3,7 @@ title: "Spec: with-artifact Skill"
 type: spec
 status: active
 covers: skills/with-artifact/SKILL.md
-last_checked: 2026-08-26
+last_checked: 2026-09-03
 ---
 
 # Spec: `with-artifact` Skill
@@ -37,9 +37,10 @@ The `with-artifact` skill instructs an AI coding agent to generate an explanator
   - Mermaid for graph-shaped data flow, connections, topology, sequence, and vertical-slice phase views; stacked cards remain supporting detail.
   - Escaped `pre.mermaid[data-mermaid-source]` fallback for every Mermaid diagram. HTML artifacts avoid `<-->` and other HTML-sensitive source; use `---` or explicit `-->` edges.
 - Explicit `mermaid.parse(source)` followed by `mermaid.render(id, source)` with `startOnLoad: false`; never rescan Mermaid-mutated DOM with `mermaid.run()`.
+- Initialize Mermaid with `useMaxWidth: false` for flowchart, sequence, class, state, er, and gantt, plus `flowchart.htmlLabels: false` and `wrappingWidth: 240`. Match `src/lib/mermaid.ts`.
 - `data-mermaid-state="rendered"` on success and readable source with `data-mermaid-state="error"` on failure. HTML Mermaid may use `securityLevel: 'loose'` only for named allowlisted local inspector callbacks; labels contain no arbitrary HTML.
 - Custom component selectors are namespaced or container-scoped so they cannot collide with Mermaid internals such as `g.node`. Mermaid nodes receive no hover transform, transition, or animation unless motion is an explicit artifact requirement.
-- Large Mermaid diagrams retain a readable SVG width inside a focusable, two-axis `overflow: auto` viewport with visible scrollbars; do not force wide graphs to `width: 100%` when that makes their contents unreadable or unreachable.
+- Wrap each diagram in a focusable two-axis `overflow: auto` viewport (`tabindex="0"`). CSS must set SVG `width: auto`, `height: auto`, and `max-width: none`; never force wide graphs to `width: 100%`.
   - Tabbed sections (e.g. "Overview", "Sequence", "Component Map", "Data Flow").
   - Animated state transitions or step-by-step walkthrough buttons.
 

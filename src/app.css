@@ -302,14 +302,17 @@ button {
 }
 
 .markdown-body pre.mermaid {
-  overflow-x: auto;
+  overflow: auto;
+  max-width: 100%;
   min-height: 2.5rem;
+  scrollbar-width: auto;
 }
 
 .markdown-body pre.mermaid svg {
   display: block;
-  max-width: none;
-  min-width: 100%;
+  width: auto !important;
+  height: auto !important;
+  max-width: none !important;
 }
 
 .mermaid-render-error,
