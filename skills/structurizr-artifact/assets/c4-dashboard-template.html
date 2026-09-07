@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITLE}}</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <style>
+    :root {
+      --bg-base: #090d16;
+      --bg-surface: #101726;
+      --bg-surface-raised: #162035;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.16);
+      --accent-cyan: #06b6d4;
+      --accent-cyan-subtle: rgba(6, 182, 212, 0.15);
+      --accent-indigo: #6366f1;
+      --accent-amber: #d29922;
+      --accent-amber-subtle: rgba(210, 153, 34, 0.15);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+    }
+
+    /* Diagram canvas & viewport */
+    .viewport {
+      position: relative;
+      width: 100%;
+      height: calc(100vh - 110px);
+      overflow: hidden;
+      cursor: grab;
+      user-select: none;
+      background: radial-gradient(circle at 50% 50%, rgba(30, 41, 59, 0.25) 0%, rgba(9, 13, 22, 0.95) 100%);
+    }
+    .viewport:active {
+      cursor: grabbing;
+    }
+
+    .canvas-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transform-origin: 0 0;
+      will-change: transform;
+      padding: 2.5rem;
+    }
+
+    /* Smooth re-render transition */
+    .diagram-fade {
+      transition: opacity 0.15s ease;
+    }
+    .diagram-fade.fading {
+      opacity: 0.3;
+    }
+
+    /* Mermaid node interactive styling */
+    .mermaid svg {
+      display: block;
+      width: auto !important;
+      height: auto !important;
+      max-width: none !important;
+      background: transparent !important;
+    }
+    .mermaid g.node {
+      cursor: pointer;
+      pointer-events: all;
+      transition: filter 0.15s ease, transform 0.15s ease;
+    }
+    .mermaid g.node:hover > rect,
+    .mermaid g.node:hover > polygon,
+    .mermaid g.node:hover > circle,
+    .mermaid g.node:hover > path {
+      stroke: var(--accent-cyan) !important;
+      stroke-width: 2.5px !important;
+      filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.5));
+    }
+
+    /* Mermaid custom dark theme overrides */
+    .mermaid .label-container {
+      rx: 6px;
+      ry: 6px;
+    }
+    .mermaid .edgeLabel {
+      background-color: transparent !important;
+      color: #94a3b8 !important;
+      font-size: 10.5px !important;
+    }
+    .mermaid .edgeLabel rect {
+      fill: #0d1320 !important;
+      stroke: #334155 !important;
+      stroke-width: 1px !important;
+      opacity: 0.92 !important;
+      rx: 4px !important;
+      ry: 4px !important;
+    }
+    .mermaid .edgeLabel span {
+      background-color: transparent !important;
+      color: #cbd5e1 !important;
+    }
+    .mermaid .edgePath path {
+      stroke: #64748b !important;
+      stroke-width: 1.5px !important;
+    }
+
+    /* Collapsed subgraph nodes get an expand cursor */
+    .mermaid g.cluster {
+      cursor: pointer;
+      pointer-events: all;
+    }
+    .mermaid g.cluster:hover > rect {
+      stroke: var(--accent-cyan) !important;
+      stroke-width: 2px !important;
+      filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.4));
+    }
+
+    /* Inspector panel slide-out */
+    #inspector-panel {
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+    }
+    #inspector-panel.collapsed {
+      transform: translateX(100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Floating zoom controls */
+    .ctrl-btn {
+      background: rgba(16, 23, 38, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      transition: all 0.15s ease;
+    }
+    .ctrl-btn:hover {
+      background: var(--bg-surface-raised);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+  </style>
+</head>
+<body class="flex flex-col h-screen select-none">
+  <!-- Top Header -->
+  <header class="flex-none px-5 py-2.5 bg-[#0d1320] border-b border-white/10 flex items-center justify-between z-30">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-bold text-sm">
+        C4
+      </div>
+      <div>
+        <h1 class="text-sm font-semibold text-slate-100 flex items-center gap-2">
+          <span>{{TITLE}}</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 font-mono">Interactive Model</span>
+        </h1>
+        <p class="text-xs text-slate-400">{{SUBTITLE}}</p>
+      </div>
+    </div>
+
+    <!-- Actions & Shortcuts -->
+    <div class="flex items-center space-x-2">
+      <button id="btn-expand-all" class="px-2.5 py-1 text-xs rounded-md bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-400/30 text-indigo-300 flex items-center gap-1.5 transition" title="Expand all containers">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        <span>Expand All</span>
+      </button>
+      <button id="btn-collapse-all" class="px-2.5 py-1 text-xs rounded-md bg-slate-800/80 hover:bg-slate-700 border border-white/10 text-slate-300 flex items-center gap-1.5 transition" title="Collapse all containers">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+        <span>Collapse All</span>
+      </button>
+      <button id="btn-help" class="px-2.5 py-1 text-xs rounded-md bg-slate-800/80 hover:bg-slate-700 border border-white/10 text-slate-300 flex items-center gap-1.5 transition">
+        <span>Shortcuts</span>
+        <kbd class="px-1.5 py-0.5 text-[10px] bg-slate-900 rounded border border-slate-700 font-mono">?</kbd>
+      </button>
+    </div>
+  </header>
+
+  <!-- C4 Navigation & Breadcrumbs Bar -->
+  <nav class="flex-none px-5 py-2 bg-[#0a0f1d] border-b border-white/5 flex items-center justify-between z-20 text-xs">
+    <div class="flex items-center space-x-2">
+      <button id="btn-level-up" class="px-2.5 py-1 rounded bg-slate-800/90 hover:bg-slate-700 text-slate-300 font-medium flex items-center gap-1.5 border border-white/10 transition disabled:opacity-40 disabled:pointer-events-none" title="Collapse innermost expanded group" disabled>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+        <span>Collapse</span>
+      </button>
+      <span class="text-slate-600">|</span>
+      <!-- Breadcrumbs -->
+      <div id="c4-breadcrumbs" class="flex items-center space-x-1.5 font-mono text-[11px] text-slate-300">
+      </div>
+    </div>
+
+    <div class="flex items-center space-x-3 text-[11px] text-slate-400">
+      <span class="flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+        <span id="current-level-label" class="font-semibold text-cyan-300">Level 2: Containers</span>
+      </span>
+      <span class="text-slate-600">·</span>
+      <span id="drilldown-hint" class="text-slate-400 hidden sm:inline">Click any container to expand its internals</span>
+    </div>
+  </nav>
+
+  <!-- Main Viewport Area -->
+  <main class="flex-1 relative overflow-hidden flex">
+    <div id="diagram-viewport" class="viewport flex-1 focus:outline-none" tabindex="0">
+      <div id="diagram-canvas" class="canvas-layer">
+        <div id="diagram-container" class="mermaid diagram-fade" data-mermaid-source="{{MERMAID_FALLBACK}}"></div>
+      </div>
+
+      <!-- Floating Canvas Controls -->
+      <div class="absolute bottom-5 right-5 flex items-center space-x-1.5 z-20">
+        <button id="ctrl-zoom-in" class="ctrl-btn w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shadow-lg" title="Zoom In (+)">+</button>
+        <button id="ctrl-zoom-out" class="ctrl-btn w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shadow-lg" title="Zoom Out (-)">−</button>
+        <button id="ctrl-reset" class="ctrl-btn px-2.5 h-8 rounded-lg flex items-center justify-center text-xs font-semibold shadow-lg text-cyan-400" title="Reset to 100% Zoom (0)">100%</button>
+        <button id="ctrl-fit" class="ctrl-btn px-2.5 h-8 rounded-lg flex items-center justify-center text-xs font-medium shadow-lg" title="Fit to View (F)">Fit</button>
+      </div>
+
+      <!-- Status indicator -->
+      <div class="absolute bottom-5 left-5 z-20 pointer-events-none">
+        <div class="px-3 py-1.5 rounded-md bg-slate-900/90 backdrop-blur border border-white/10 text-[11px] text-slate-400 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span id="status-text">Ready · Scale: 100%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inspector Slide-Over Panel (for leaf nodes only) -->
+    <aside id="inspector-panel" class="collapsed absolute top-0 right-0 bottom-0 w-96 bg-[#111827]/95 backdrop-blur-md border-l border-white/10 shadow-2xl flex flex-col z-30">
+      <div class="p-4 border-b border-white/10 flex items-start justify-between">
+        <div>
+          <span id="insp-type-badge" class="px-2 py-0.5 text-[11px] font-medium rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-mono">Container</span>
+          <h2 id="insp-title" class="text-base font-bold text-white mt-1">Element Name</h2>
+        </div>
+        <button id="insp-close" class="text-slate-400 hover:text-white p-1 rounded hover:bg-white/10 text-lg leading-none">&times;</button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
+        <div id="insp-status-container" class="flex flex-wrap gap-1.5"></div>
+        <div id="insp-tech-box" class="p-3 rounded-lg bg-slate-900/60 border border-white/5 space-y-1">
+          <div class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Technology</div>
+          <div id="insp-tech" class="text-slate-200 font-mono font-medium"></div>
+        </div>
+        <div class="space-y-1">
+          <div class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Description</div>
+          <p id="insp-desc" class="text-slate-300 leading-relaxed text-xs"></p>
+        </div>
+        <div id="insp-codepath-box" class="p-3 rounded-lg bg-slate-900/60 border border-white/5 space-y-1">
+          <div class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Repository Path</div>
+          <div id="insp-codepath" class="font-mono text-[11px] text-cyan-400 break-all"></div>
+        </div>
+        <div id="insp-props-box" class="space-y-1">
+          <div class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">C4 DSL Properties</div>
+          <div id="insp-props" class="p-2.5 rounded-lg bg-slate-900/40 border border-white/5 font-mono text-[11px] text-slate-400 space-y-1"></div>
+        </div>
+      </div>
+      <div class="p-4 border-t border-white/10 bg-slate-900/50 flex flex-col gap-2">
+        <a id="insp-link" href="#" target="_blank" rel="noopener noreferrer" class="hidden w-full py-2.5 px-3 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-medium text-xs text-center flex items-center justify-center gap-1.5 transition shadow-lg shadow-cyan-600/20">
+          <span>View Source on GitHub</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+        </a>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Keyboard Shortcuts Modal -->
+  <dialog id="help-modal" class="rounded-xl bg-slate-900 text-white p-6 border border-white/10 shadow-2xl backdrop:bg-black/60 max-w-sm w-full">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-bold text-sm text-cyan-400">C4 Dashboard Controls</h3>
+      <button onclick="document.getElementById('help-modal').close()" class="text-slate-400 hover:text-white">&times;</button>
+    </div>
+    <div class="space-y-2 text-xs text-slate-300 font-mono">
+      <div class="flex justify-between py-1 border-b border-white/5"><span>Pan Diagram</span><kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-[11px]">Click + Drag</kbd></div>
+      <div class="flex justify-between py-1 border-b border-white/5"><span>Expand / Collapse Node</span><kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-[11px]">Click Node</kbd></div>
+      <div class="flex justify-between py-1 border-b border-white/5"><span>Zoom In / Out</span><kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-[11px]">Wheel or + / -</kbd></div>
+      <div class="flex justify-between py-1 border-b border-white/5"><span>Reset to 100%</span><kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-[11px]">0</kbd></div>
+      <div class="flex justify-between py-1 border-b border-white/5"><span>Fit to Screen</span><kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-[11px]">F</kbd></div>
+      <div class="flex justify-between py-1 border-b border-white/5"><span>Collapse Innermost</span><kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-[11px]">U</kbd></div>
+      <div class="flex justify-between py-1 border-b border-white/5"><span>Expand All</span><kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-[11px]">E</kbd></div>
+      <div class="flex justify-between py-1 border-b border-white/5"><span>Collapse All</span><kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-[11px]">C</kbd></div>
+      <div class="flex justify-between py-1 border-b border-white/5"><span>Close Inspector</span><kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-[11px]">Escape</kbd></div>
+      <div class="flex justify-between py-1"><span>Show Help</span><kbd class="px-1.5 py-0.5 bg-slate-800 rounded text-[11px]">?</kbd></div>
+    </div>
+  </dialog>
+
+  <!-- Embedded Data & Scripts -->
+  <script>
+    window.__C4_DATA__ = {{C4_DATA_JSON}};
+  </script>
+
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.17.1/dist/mermaid.esm.min.mjs';
+
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose',
+      theme: 'dark',
+      flowchart: {
+        htmlLabels: true,
+        useMaxWidth: false,
+        wrappingWidth: 260,
+        nodeSpacing: 50,
+        rankSpacing: 70,
+        padding: 14
+      }
+    });
+
+    const data = window.__C4_DATA__;
+    const elements = data.elements || {};
+    const groups = data.collapsibleGroups || {};
+    const mermaidBody = data.mermaidBody || '';
+    const mermaidStyles = data.mermaidStyles || '';
+    const mermaidEdges = data.mermaidEdges || '';
+
+    // Expand/collapse state: all collapsed initially
+    const expandedSet = new Set();
+    let renderCounter = 0;
+    let isRendering = false;
+
+    // Pan / Zoom State Manager
+    class PanZoomManager {
+      constructor(viewportEl, canvasEl) {
+        this.viewport = viewportEl;
+        this.canvas = canvasEl;
+        this.scale = 1.0;
+        this.x = 40;
+        this.y = 40;
+        this.isPointerDown = false;
+        this.isDragging = false;
+        this.downX = 0;
+        this.downY = 0;
+        this.startX = 0;
+        this.startY = 0;
+        this.init();
+      }
+
+      init() {
+        this.viewport.addEventListener('pointerdown', (e) => this.onPointerDown(e));
+        window.addEventListener('pointermove', (e) => this.onPointerMove(e));
+        window.addEventListener('pointerup', (e) => this.onPointerUp(e));
+        this.viewport.addEventListener('wheel', (e) => this.onWheel(e), { passive: false });
+      }
+
+      onPointerDown(e) {
+        if (e.target.closest('button, a, #inspector-panel')) return;
+        this.isPointerDown = true;
+        this.isDragging = false;
+        this.downX = e.clientX;
+        this.downY = e.clientY;
+        this.startX = e.clientX - this.x;
+        this.startY = e.clientY - this.y;
+      }
+
+      onPointerMove(e) {
+        if (!this.isPointerDown) return;
+        const dist = Math.hypot(e.clientX - this.downX, e.clientY - this.downY);
+        if (!this.isDragging && dist > 5) {
+          this.isDragging = true;
+          this.viewport.setPointerCapture(e.pointerId);
+        }
+        if (this.isDragging) {
+          this.x = e.clientX - this.startX;
+          this.y = e.clientY - this.startY;
+          this.applyTransform();
+        }
+      }
+
+      onPointerUp(e) {
+        if (this.isDragging) {
+          try { this.viewport.releasePointerCapture(e.pointerId); } catch {}
+        }
+        this.isPointerDown = false;
+        this.isDragging = false;
+      }
+
+      onWheel(e) {
+        e.preventDefault();
+        const delta = -e.deltaY * 0.0015;
+        const newScale = Math.min(Math.max(0.2, this.scale * (1 + delta)), 3.5);
+        const rect = this.viewport.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        this.x = mouseX - (mouseX - this.x) * (newScale / this.scale);
+        this.y = mouseY - (mouseY - this.y) * (newScale / this.scale);
+        this.scale = newScale;
+        this.applyTransform();
+      }
+
+      zoom(factor) {
+        const rect = this.viewport.getBoundingClientRect();
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const newScale = Math.min(Math.max(0.2, this.scale * factor), 3.5);
+        this.x = centerX - (centerX - this.x) * (newScale / this.scale);
+        this.y = centerY - (centerY - this.y) * (newScale / this.scale);
+        this.scale = newScale;
+        this.applyTransform();
+      }
+
+      reset() {
+        this.scale = 1.0;
+        this.x = 60;
+        this.y = 40;
+        this.applyTransform();
+      }
+
+      fit() {
+        const activeSvg = this.canvas.querySelector('svg');
+        if (!activeSvg) return this.reset();
+        const vRect = this.viewport.getBoundingClientRect();
+        const rawW = activeSvg.viewBox?.baseVal?.width || activeSvg.getBoundingClientRect().width / this.scale || 800;
+        const rawH = activeSvg.viewBox?.baseVal?.height || activeSvg.getBoundingClientRect().height / this.scale || 600;
+        const scaleW = (vRect.width - 80) / rawW;
+        const scaleH = (vRect.height - 80) / rawH;
+        this.scale = Math.min(Math.max(0.2, Math.min(scaleW, scaleH)), 1.5);
+        this.x = Math.max(20, (vRect.width - rawW * this.scale) / 2);
+        this.y = Math.max(20, (vRect.height - rawH * this.scale) / 2);
+        this.applyTransform();
+      }
+
+      applyTransform() {
+        this.canvas.style.transform = `translate(${this.x}px, ${this.y}px) scale(${this.scale})`;
+        const pct = Math.round(this.scale * 100);
+        document.getElementById('status-text').textContent = `Scale: ${pct}% · Pan: (${Math.round(this.x)}, ${Math.round(this.y)})`;
+      }
+    }
+
+    const panZoom = new PanZoomManager(
+      document.getElementById('diagram-viewport'),
+      document.getElementById('diagram-canvas')
+    );
+
+    // Build Mermaid source with current expand/collapse state
+    function buildMermaidSource() {
+      let source = 'graph TD\n';
+      source += '  linkStyle default stroke:#475569,color:#94a3b8\n\n';
+      source += mermaidBody + '\n\n';
+
+      // Emit collapse metadata for each collapsed group
+      for (const groupId of Object.keys(groups)) {
+        if (!expandedSet.has(groupId)) {
+          source += `  ${groupId}@{ view: collapsed }\n`;
+        }
+      }
+
+      source += '\n' + mermaidEdges + '\n';
+      source += '\n' + mermaidStyles + '\n';
+
+      return source;
+    }
+
+    // Render the diagram
+    const diagramContainer = document.getElementById('diagram-container');
+
+    async function renderDiagram() {
+      if (isRendering) return;
+      isRendering = true;
+
+      diagramContainer.classList.add('fading');
+      await new Promise(r => setTimeout(r, 80));
+
+      const source = buildMermaidSource();
+      renderCounter++;
+      const renderId = `c4_${renderCounter}`;
+
+      try {
+        const { svg } = await mermaid.render(renderId, source);
+        diagramContainer.innerHTML = svg;
+      } catch (err) {
+        console.error('Mermaid render error:', err);
+        diagramContainer.innerHTML = '<div style="color:#ef4444;padding:20px;font-family:monospace;">Render error: ' + err.message + '</div>';
+      }
+
+      diagramContainer.classList.remove('fading');
+      isRendering = false;
+
+      updateBreadcrumbs();
+      updateLevelLabel();
+      updateLevelUpButton();
+    }
+
+    // Determine the expansion path (chain of expanded ancestors)
+    function getExpansionPath() {
+      const chain = [];
+      for (const [groupId, info] of Object.entries(groups)) {
+        if (!expandedSet.has(groupId)) continue;
+        const hasExpandedChild = Object.entries(groups).some(([id, g]) => g.parentId === groupId && expandedSet.has(id));
+        if (!hasExpandedChild) {
+          let cur = groupId;
+          const path = [];
+          while (cur) {
+            path.unshift(cur);
+            cur = groups[cur]?.parentId || null;
+          }
+          if (path.length > chain.length) {
+            chain.length = 0;
+            chain.push(...path);
+          }
+        }
+      }
+      return chain;
+    }
+
+    function isDescendantOf(childId, ancestorId) {
+      let cur = childId;
+      while (cur) {
+        if (cur === ancestorId) return true;
+        cur = groups[cur]?.parentId || null;
+      }
+      return false;
+    }
+
+    function updateBreadcrumbs() {
+      const crumbContainer = document.getElementById('c4-breadcrumbs');
+      crumbContainer.innerHTML = '';
+
+      const rootCrumb = document.createElement('button');
+      rootCrumb.className = expandedSet.size === 0
+        ? 'text-cyan-400 font-bold hover:underline'
+        : 'text-slate-400 hover:text-white transition';
+      rootCrumb.textContent = 'Containers';
+      rootCrumb.onclick = () => { expandedSet.clear(); renderDiagram(); };
+      crumbContainer.appendChild(rootCrumb);
+
+      const path = getExpansionPath();
+      for (const groupId of path) {
+        if (!expandedSet.has(groupId)) continue;
+        const sep = document.createElement('span');
+        sep.className = 'text-slate-600';
+        sep.textContent = '›';
+        crumbContainer.appendChild(sep);
+
+        const info = groups[groupId];
+        const isLast = groupId === path[path.length - 1];
+        const crumb = document.createElement('button');
+        crumb.className = isLast ? 'text-cyan-400 font-bold hover:underline' : 'text-slate-400 hover:text-white transition';
+        crumb.textContent = info?.label || groupId;
+        crumb.onclick = () => {
+          for (const [id] of Object.entries(groups)) {
+            if (isDescendantOf(id, groupId) && id !== groupId) expandedSet.delete(id);
+          }
+          renderDiagram();
+        };
+        crumbContainer.appendChild(crumb);
+      }
+    }
+
+    function updateLevelLabel() {
+      const path = getExpansionPath();
+      let deepestLevel = 'Level 2: Containers';
+      for (const groupId of path) {
+        if (expandedSet.has(groupId) && groups[groupId]?.level) {
+          deepestLevel = groups[groupId].level;
+        }
+      }
+      document.getElementById('current-level-label').textContent = deepestLevel;
+    }
+
+    function updateLevelUpButton() {
+      const btn = document.getElementById('btn-level-up');
+      if (expandedSet.size === 0) {
+        btn.disabled = true;
+      } else {
+        btn.disabled = false;
+        btn.onclick = () => {
+          const path = getExpansionPath();
+          if (path.length > 0) {
+            const deepest = path[path.length - 1];
+            if (expandedSet.has(deepest)) {
+              expandedSet.delete(deepest);
+              for (const [id] of Object.entries(groups)) {
+                if (isDescendantOf(id, deepest)) expandedSet.delete(id);
+              }
+              renderDiagram();
+            }
+          }
+        };
+      }
+    }
+
+    // Inspector
+    const inspector = document.getElementById('inspector-panel');
+    let selectedElement = null;
+
+    function showInspector(el) {
+      if (!el) return;
+      selectedElement = el;
+      document.getElementById('insp-title').textContent = el.name || 'Element';
+      document.getElementById('insp-type-badge').textContent = el.type || 'Element';
+      const techBox = document.getElementById('insp-tech-box');
+      if (el.technology) { techBox.classList.remove('hidden'); document.getElementById('insp-tech').textContent = el.technology; }
+      else { techBox.classList.add('hidden'); }
+      document.getElementById('insp-desc').textContent = el.description || 'No description.';
+      const codePathBox = document.getElementById('insp-codepath-box');
+      const codePath = el.properties?.code || '';
+      if (codePath) { codePathBox.classList.remove('hidden'); document.getElementById('insp-codepath').textContent = codePath; }
+      else { codePathBox.classList.add('hidden'); }
+      const statusContainer = document.getElementById('insp-status-container');
+      statusContainer.innerHTML = '';
+      if (el.planned) { const b = document.createElement('span'); b.className = 'px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-semibold'; b.textContent = 'Planned'; statusContainer.appendChild(b); }
+      if (el.external) { const b = document.createElement('span'); b.className = 'px-2 py-0.5 rounded bg-slate-700/50 text-slate-300 border border-slate-600 text-[10px] font-semibold'; b.textContent = 'External'; statusContainer.appendChild(b); }
+      const propsContainer = document.getElementById('insp-props');
+      propsContainer.innerHTML = '';
+      const keys = Object.keys(el.properties || {});
+      if (keys.length > 0) { document.getElementById('insp-props-box').classList.remove('hidden'); keys.forEach(k => { const row = document.createElement('div'); row.className = 'flex justify-between gap-2'; row.innerHTML = '<span class="text-slate-500 truncate">' + k + ':</span><span class="text-slate-300 truncate">' + (el.properties[k] || '') + '</span>'; propsContainer.appendChild(row); }); }
+      else { document.getElementById('insp-props-box').classList.add('hidden'); }
+      const linkBtn = document.getElementById('insp-link');
+      if (el.url && el.url.startsWith('http')) { linkBtn.href = el.url; linkBtn.classList.remove('hidden'); }
+      else { linkBtn.classList.add('hidden'); }
+      inspector.classList.remove('collapsed');
+    }
+
+    function closeInspector() {
+      inspector.classList.add('collapsed');
+      selectedElement = null;
+      const pct = Math.round(panZoom.scale * 100);
+      document.getElementById('status-text').textContent = `Scale: ${pct}% · Ready`;
+    }
+
+    document.getElementById('insp-close').addEventListener('click', closeInspector);
+
+    // Delegated click for expand/collapse & inspector
+    document.getElementById('diagram-canvas').addEventListener('click', (e) => {
+      if (isRendering) return;
+      if (e.target.closest('a')) return;
+
+      const nodeEl = e.target.closest('g.node');
+      const clusterEl = !nodeEl ? e.target.closest('g.cluster') : null;
+      if (!nodeEl && !clusterEl) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      let clickedId = null;
+      const el = nodeEl || clusterEl;
+      const idAttr = el.id || '';
+
+      const matchNode = idAttr.match(/^c4_\d+-flowchart-(.+)-\d+$/);
+      if (matchNode) {
+        clickedId = matchNode[1];
+      } else {
+        const matchSg = idAttr.match(/^c4_\d+-(.+)$/);
+        if (matchSg) {
+          clickedId = matchSg[1];
+        }
+      }
+
+      if (!clickedId) return;
+
+      // Collapsible group: toggle expand/collapse
+      if (groups[clickedId]) {
+        closeInspector();
+        if (expandedSet.has(clickedId)) {
+          expandedSet.delete(clickedId);
+          for (const [id] of Object.entries(groups)) {
+            if (isDescendantOf(id, clickedId)) expandedSet.delete(id);
+          }
+        } else {
+          expandedSet.add(clickedId);
+        }
+        renderDiagram();
+        return;
+      }
+
+      // Leaf node: inspector
+      const elMeta = elements[clickedId];
+      if (elMeta) showInspector(elMeta);
+    });
+
+    document.getElementById('diagram-viewport').addEventListener('click', (e) => {
+      if (e.target.id === 'diagram-viewport' || e.target.id === 'diagram-canvas') closeInspector();
+    });
+
+    // Controls
+    document.getElementById('ctrl-zoom-in').addEventListener('click', () => panZoom.zoom(1.25));
+    document.getElementById('ctrl-zoom-out').addEventListener('click', () => panZoom.zoom(0.8));
+    document.getElementById('ctrl-fit').addEventListener('click', () => panZoom.fit());
+    document.getElementById('ctrl-reset').addEventListener('click', () => panZoom.reset());
+    document.getElementById('btn-expand-all').addEventListener('click', () => { for (const gId of Object.keys(groups)) expandedSet.add(gId); renderDiagram(); });
+    document.getElementById('btn-collapse-all').addEventListener('click', () => { expandedSet.clear(); renderDiagram(); });
+
+    // Keyboard shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'Escape') { closeInspector(); document.getElementById('help-modal').close(); }
+      else if (e.key === '+' || e.key === '=') panZoom.zoom(1.25);
+      else if (e.key === '-' || e.key === '_') panZoom.zoom(0.8);
+      else if (e.key === '0') panZoom.reset();
+      else if (e.key === 'f' || e.key === 'F') panZoom.fit();
+      else if (e.key === 'u' || e.key === 'U') document.getElementById('btn-level-up').click();
+      else if (e.key === 'e' || e.key === 'E') document.getElementById('btn-expand-all').click();
+      else if (e.key === 'c' || e.key === 'C') document.getElementById('btn-collapse-all').click();
+      else if (e.key === '?') document.getElementById('help-modal').showModal();
+    });
+
+    document.getElementById('btn-help').addEventListener('click', () => document.getElementById('help-modal').showModal());
+
+    // Initial render
+    renderDiagram();
+  </script>
+</body>
+</html>
