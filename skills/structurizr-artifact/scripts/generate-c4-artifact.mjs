@@ -158,7 +158,7 @@ function buildNodeCard(el, isCollapsible) {
   const techLabel = el.technology ? `: ${escapeHtml(el.technology)}` : '';
   const desc = el.description ? escapeHtml(el.description).substring(0, 120) : '';
 
-  return `<div class='c4-node-card' style='text-align:center;padding:8px 12px;font-family:system-ui,-apple-system,sans-serif;max-width:270px;'><div style='font-weight:700;font-size:13.5px;color:${titleColor};margin-bottom:3px;'>${escapeHtml(el.name)}</div><div style='font-size:9.5px;color:#94a3b8;font-family:ui-monospace,monospace;margin-bottom:4px;'>[${escapeHtml(el.type)}${techLabel}]</div><div style='font-size:11px;line-height:1.4;color:#cbd5e1;'>${desc}</div>${expandBadge}${codeLink}</div>`;
+  return `<div class='c4-node-card' style='width:230px;max-width:230px;overflow-wrap:anywhere;text-align:center;padding:8px 12px;font-family:system-ui,-apple-system,sans-serif;'><div style='font-weight:700;font-size:13.5px;color:${titleColor};margin-bottom:3px;'>${escapeHtml(el.name)}</div><div style='font-size:9.5px;color:#94a3b8;font-family:ui-monospace,monospace;margin-bottom:4px;'>[${escapeHtml(el.type)}${techLabel}]</div><div style='font-size:11px;line-height:1.4;color:#cbd5e1;'>${desc}</div>${expandBadge}${codeLink}</div>`;
 }
 
 // Build the unified Mermaid diagram body, edges, and styles
@@ -166,6 +166,7 @@ function buildUnifiedDiagram(ws, elements, collapsibleGroups) {
   const bodyLines = [];
   const styleLines = [];
   const edgeLines = [];
+  const overviewEdgeLines = [];
 
   // Color map for different element types
   const containerFill = '#131c31';
@@ -182,6 +183,13 @@ function buildUnifiedDiagram(ws, elements, collapsibleGroups) {
   const routerStroke = '#818cf8';
   const guardFill = '#291e0a';
   const guardStroke = '#d29922';
+  const model = ws.model || {};
+  const people = model.people || [];
+  const softwareSystems = model.softwareSystems || [];
+  const externalSystems = softwareSystems.filter((sys) => elements[sys.id]?.external);
+  const internalSystems = softwareSystems.filter((sys) => !elements[sys.id]?.external);
+  const nodeIdByElementId = new Map();
+  const elementGroupIds = new Map();
 
   function getStyleForEl(el, nodeId) {
     if (el.type === 'Person') return `  style ${nodeId} fill:${personFill},stroke:${personStroke},color:#fef3c7`;
@@ -192,135 +200,224 @@ function buildUnifiedDiagram(ws, elements, collapsibleGroups) {
     return `  style ${nodeId} fill:${containerFill},stroke:${containerStroke},color:#f8fafc`;
   }
 
-  // Determine which elements are containers/components in the Nimblerbot system
-  const nimblerbot = ws.model?.softwareSystems?.find(s => s.name === 'Nimblerbot');
-  if (!nimblerbot) {
-    throw new Error('Nimblerbot software system not found in workspace model');
+  if (internalSystems.length === 0) {
+    throw new Error('No internal software system found in workspace model');
   }
 
-  const containers = nimblerbot.containers || [];
-  const externalSystems = (ws.model?.softwareSystems || []).filter(s => s.name !== 'Nimblerbot');
-  const people = ws.model?.people || [];
-
-  // Emit people as top-level nodes
-  for (const person of people) {
-    const nodeId = safeId(person.name);
-    const el = elements[person.id];
-    if (!el) continue;
-    const card = buildNodeCard(el, false);
-    bodyLines.push(`  ${nodeId}["${card}"]`);
-    styleLines.push(getStyleForEl(el, nodeId));
+  function addOrderLinks(indent, nodeIds) {
+    if (nodeIds.length < 2) return;
+    bodyLines.push(`${indent}${nodeIds.join(' ~~~ ')}`);
   }
 
-  // Emit the main system boundary subgraph
-  bodyLines.push(`  subgraph Nimblerbot ["Nimblerbot"]`);
-  bodyLines.push(`    style Nimblerbot fill:#0b0f19,stroke:#1e3a5f,color:#94a3b8`);
+  function addClusterStyle(nodeId, fill, stroke, color) {
+    styleLines.push(`  style ${nodeId} fill:${fill},stroke:${stroke},color:${color}`);
+  }
 
-  // Process each container
-  for (const container of containers) {
-    const el = elements[container.id];
-    if (!el) continue;
+  function addElementGroup(elementId, groupId) {
+    if (!elementGroupIds.has(elementId)) elementGroupIds.set(elementId, new Set());
+    elementGroupIds.get(elementId).add(groupId);
+  }
+
+  function emitLeaf(meta, nodeId, indent) {
+    bodyLines.push(`${indent}${nodeId}["${buildNodeCard(meta, false)}"]`);
+    styleLines.push(getStyleForEl(meta, nodeId));
+  }
+
+  const codeModules = [
+    'code_inbox', 'code_runtime', 'code_handlers', 'code_router', 'code_model',
+    'code_tools', 'code_services', 'code_days', 'code_slots', 'code_confirm',
+    'code_handoff', 'code_api', 'code_guard', 'code_vlogs'
+  ];
+
+  function emitContainer(container, indent) {
+    const containerMeta = elements[container.id];
+    if (!containerMeta) return null;
+
     const nodeId = safeId(container.name);
+    nodeIdByElementId.set(container.id, nodeId);
     const components = container.components || [];
 
-    if (components.length > 0) {
-      // Container with children → subgraph
-      const sgId = nodeId;
-      bodyLines.push(`    subgraph ${sgId} ["${escapeHtml(container.name)}"]`);
-
-      // Container-level style
-      const sgFill = container.name === 'Booking Worker' ? '#0b0f19' : '#0b1120';
-      bodyLines.push(`      style ${sgId} fill:${sgFill},stroke:${containerStroke},color:#38bdf8`);
-
-      // Register as collapsible group
-      collapsibleGroups[sgId] = {
-        label: container.name,
-        parentId: null,
-        level: 'Level 3: Components',
-        children: [],
-      };
-
-      for (const comp of components) {
-        const compEl = elements[comp.id];
-        if (!compEl) continue;
-        const compNodeId = safeId(comp.name);
-        const compComponents = []; // Components don't nest further in our model
-
-        // Check if this component should have its own collapsible subgraph (e.g. Receptionist Forge)
-        const isReceptionist = comp.name === 'Receptionist Forge';
-        const hasCodeChildren = isReceptionist; // Only Receptionist has Level 4 code flow children
-
-        if (hasCodeChildren) {
-          const compSgId = compNodeId;
-          bodyLines.push(`      subgraph ${compSgId} ["${escapeHtml(comp.name)}"]`);
-          bodyLines.push(`        style ${compSgId} fill:#0a0e1a,stroke:${componentStroke},color:#818cf8`);
-
-          collapsibleGroups[compSgId] = {
-            label: comp.name,
-            parentId: sgId,
-            level: 'Level 4: Code Flow',
-            children: [],
-          };
-          collapsibleGroups[sgId].children.push(compSgId);
-
-          // Add code flow children
-          const codeModules = [
-            'code_inbox', 'code_runtime', 'code_handlers', 'code_router', 'code_model',
-            'code_tools', 'code_services', 'code_days', 'code_slots', 'code_confirm',
-            'code_handoff', 'code_api', 'code_guard', 'code_vlogs'
-          ];
-
-          for (const codeId of codeModules) {
-            const codeEl = elements[codeId];
-            if (!codeEl) continue;
-            const card = buildNodeCard(codeEl, false);
-            bodyLines.push(`        ${codeId}["${card}"]`);
-
-            // Special styling per module type
-            if (codeId === 'code_router' || codeId === 'code_model') {
-              styleLines.push(`  style ${codeId} fill:${routerFill},stroke:${routerStroke},color:#e0e7ff`);
-            } else if (codeId === 'code_guard') {
-              styleLines.push(`  style ${codeId} fill:${guardFill},stroke:${guardStroke},color:#fef3c7`);
-            } else if (codeEl.type === 'Tool Action') {
-              styleLines.push(`  style ${codeId} fill:${codeModuleFill},stroke:${codeModuleStroke},color:#f0fdfa`);
-            } else {
-              styleLines.push(`  style ${codeId} fill:${containerFill},stroke:${containerStroke},color:#f8fafc`);
-            }
-          }
-
-          bodyLines.push(`      end`);
-        } else {
-          const card = buildNodeCard(compEl, false);
-          bodyLines.push(`      ${compNodeId}["${card}"]`);
-          styleLines.push(getStyleForEl(compEl, compNodeId));
-        }
-      }
-
-      bodyLines.push(`    end`);
-    } else {
-      // Container without children → simple node
-      const card = buildNodeCard(el, false);
-      bodyLines.push(`    ${nodeId}["${card}"]`);
-      styleLines.push(getStyleForEl(el, nodeId));
+    if (components.length === 0) {
+      emitLeaf(containerMeta, nodeId, indent);
+      return nodeId;
     }
+
+    bodyLines.push(`${indent}subgraph ${nodeId} ["${escapeHtml(container.name)}"]`);
+    addElementGroup(container.id, nodeId);
+    addClusterStyle(nodeId, container.name === 'Booking Worker' ? '#0b0f19' : '#0b1120', containerStroke, '#38bdf8');
+    collapsibleGroups[nodeId] = {
+      label: container.name,
+      parentId: null,
+      level: 'Level 3: Components',
+      children: [],
+    };
+
+    for (const comp of components) {
+      const compMeta = elements[comp.id];
+      if (!compMeta) continue;
+      const compNodeId = safeId(comp.name);
+      nodeIdByElementId.set(comp.id, compNodeId);
+      addElementGroup(comp.id, nodeId);
+
+      if (comp.name === 'Receptionist Forge' && codeModules.some((codeId) => elements[codeId])) {
+        bodyLines.push(`${indent}  subgraph ${compNodeId} ["${escapeHtml(comp.name)}"]`);
+        addClusterStyle(compNodeId, '#0a0e1a', componentStroke, '#818cf8');
+        collapsibleGroups[compNodeId] = {
+          label: comp.name,
+          parentId: nodeId,
+          level: 'Level 4: Code Flow',
+          children: [],
+        };
+        collapsibleGroups[nodeId].children.push(compNodeId);
+        addElementGroup(comp.id, compNodeId);
+
+        for (const codeId of codeModules) {
+          const codeMeta = elements[codeId];
+          if (!codeMeta) continue;
+          nodeIdByElementId.set(codeId, codeId);
+          addElementGroup(codeId, compNodeId);
+          bodyLines.push(`${indent}    ${codeId}["${buildNodeCard(codeMeta, false)}"]`);
+          if (codeId === 'code_router' || codeId === 'code_model') {
+            styleLines.push(`  style ${codeId} fill:${routerFill},stroke:${routerStroke},color:#e0e7ff`);
+          } else if (codeId === 'code_guard') {
+            styleLines.push(`  style ${codeId} fill:${guardFill},stroke:${guardStroke},color:#fef3c7`);
+          } else if (codeMeta.type === 'Tool Action') {
+            styleLines.push(`  style ${codeId} fill:${codeModuleFill},stroke:${codeModuleStroke},color:#f0fdfa`);
+          } else {
+            styleLines.push(`  style ${codeId} fill:${containerFill},stroke:${containerStroke},color:#f8fafc`);
+          }
+        }
+
+        bodyLines.push(`${indent}  end`);
+      } else {
+        emitLeaf(compMeta, compNodeId, `${indent}  `);
+      }
+    }
+
+    bodyLines.push(`${indent}end`);
+    return nodeId;
   }
 
-  bodyLines.push(`  end`); // Close NimblerbotSG
+  function isDatastore(container) {
+    const meta = elements[container.id];
+    return meta?.tags?.some((tag) => /datastore|database|queue|cache/i.test(tag)) || false;
+  }
 
-  // External systems as top-level nodes
+  function emitSystemContent(system, indent) {
+    const systemId = safeId(system.name);
+    const containers = system.containers || [];
+    const applicationContainers = containers.filter((container) => !isDatastore(container));
+    const dataContainers = containers.filter((container) => isDatastore(container));
+    const applicationId = `${systemId}_Application`;
+    const dataId = `${systemId}_Data`;
+    const applicationCardsId = `${applicationId}_Cards`;
+    const dataCardsId = `${dataId}_Cards`;
+    const applicationAnchor = `c4_layout_${systemId}_application_anchor`;
+    const dataAnchor = `c4_layout_${systemId}_data_anchor`;
+
+    bodyLines.push(`${indent}subgraph ${applicationId} ["Application"]`);
+    bodyLines.push(`${indent}  direction TB`);
+    bodyLines.push(`${indent}  ${applicationAnchor}(( ))`);
+    bodyLines.push(`${indent}  subgraph ${applicationCardsId} [" "]`);
+    bodyLines.push(`${indent}    direction LR`);
+    const applicationNodeIds = applicationContainers
+      .map((container) => emitContainer(container, `${indent}    `))
+      .filter(Boolean);
+    addOrderLinks(`${indent}    `, applicationNodeIds);
+    bodyLines.push(`${indent}  end`);
+    bodyLines.push(`${indent}end`);
+    addClusterStyle(applicationCardsId, 'transparent', 'transparent', 'transparent');
+
+    bodyLines.push(`${indent}subgraph ${dataId} ["Data"]`);
+    bodyLines.push(`${indent}  direction TB`);
+    bodyLines.push(`${indent}  ${dataAnchor}(( ))`);
+    bodyLines.push(`${indent}  subgraph ${dataCardsId} [" "]`);
+    bodyLines.push(`${indent}    direction LR`);
+    const dataNodeIds = dataContainers
+      .map((container) => emitContainer(container, `${indent}    `))
+      .filter(Boolean);
+    addOrderLinks(`${indent}    `, dataNodeIds);
+    bodyLines.push(`${indent}  end`);
+    bodyLines.push(`${indent}end`);
+    addClusterStyle(dataCardsId, 'transparent', 'transparent', 'transparent');
+
+    return { applicationAnchor, dataAnchor };
+  }
+
+  const usersBandId = 'c4_layout_users_band';
+  const usersCardsId = 'c4_layout_users_cards';
+  const usersAnchor = 'c4_layout_users_anchor';
+  const internalAnchor = 'c4_layout_internal_anchor';
+  const externalBandId = 'c4_layout_external_band';
+  const externalCardsId = 'c4_layout_external_cards';
+  const externalAnchor = 'c4_layout_external_anchor';
+
+  bodyLines.push(`  subgraph ${usersBandId} ["Users"]`);
+  bodyLines.push(`    direction TB`);
+  bodyLines.push(`    ${usersAnchor}(( ))`);
+  bodyLines.push(`    subgraph ${usersCardsId} [" "]`);
+  bodyLines.push(`      direction LR`);
+  const userNodeIds = [];
+
+  for (const person of people) {
+    const nodeId = safeId(person.name);
+    const meta = elements[person.id];
+    if (!meta) continue;
+    nodeIdByElementId.set(person.id, nodeId);
+    userNodeIds.push(nodeId);
+    emitLeaf(meta, nodeId, '      ');
+  }
+  addOrderLinks('      ', userNodeIds);
+  bodyLines.push(`    end`);
+  bodyLines.push(`  end`);
+  addClusterStyle(usersCardsId, 'transparent', 'transparent', 'transparent');
+
+  const internalRootId = internalSystems.length === 1 ? safeId(internalSystems[0].name) : 'c4_layout_internal_systems';
+  const internalRootLabel = internalSystems.length === 1 ? internalSystems[0].name : 'Internal Systems';
+  bodyLines.push(`  subgraph ${internalRootId} ["${escapeHtml(internalRootLabel)}"]`);
+  bodyLines.push(`    direction TB`);
+  bodyLines.push(`    ${internalAnchor}(( ))`);
+  addClusterStyle(internalRootId, '#0b0f19', '#1e3a5f', '#94a3b8');
+
+  const systemAnchors = [];
+  for (const [index, system] of internalSystems.entries()) {
+    const systemId = safeId(system.name);
+    const isRootSystem = internalSystems.length === 1;
+    if (!isRootSystem) {
+      bodyLines.push(`    subgraph ${systemId} ["${escapeHtml(system.name)}"]`);
+      bodyLines.push(`      direction TB`);
+      addClusterStyle(systemId, '#0b0f19', '#1e3a5f', '#94a3b8');
+    }
+    const contentIndent = isRootSystem ? '    ' : '      ';
+    const anchors = emitSystemContent(system, contentIndent);
+    systemAnchors.push(anchors);
+    if (!isRootSystem) bodyLines.push(`    end`);
+    if (index === 0) nodeIdByElementId.set(system.id, internalRootId);
+  }
+  bodyLines.push(`  end`);
+
+  bodyLines.push(`  subgraph ${externalBandId} ["External Connections"]`);
+  bodyLines.push(`    direction TB`);
+  bodyLines.push(`    ${externalAnchor}(( ))`);
+  bodyLines.push(`    subgraph ${externalCardsId} [" "]`);
+  bodyLines.push(`      direction LR`);
+  const externalNodeIds = [];
   for (const sys of externalSystems) {
     const el = elements[sys.id];
     if (!el) continue;
     const nodeId = safeId(sys.name);
-    const card = buildNodeCard(el, false);
-    bodyLines.push(`  ${nodeId}["${card}"]`);
-    styleLines.push(getStyleForEl(el, nodeId));
+    nodeIdByElementId.set(sys.id, nodeId);
+    externalNodeIds.push(nodeId);
+    emitLeaf(el, nodeId, '      ');
   }
+  addOrderLinks('      ', externalNodeIds);
+  bodyLines.push(`    end`);
+  bodyLines.push(`  end`);
+  addClusterStyle(externalCardsId, 'transparent', 'transparent', 'transparent');
 
-  // Build edges from relationships in the workspace model
   const allRelationships = [];
 
-  function collectRelationships(el, sourceId) {
+  function collectRelationships(el) {
     if (!el) return;
     for (const rel of (el.relationships || [])) {
       allRelationships.push({
@@ -334,26 +431,78 @@ function buildUnifiedDiagram(ws, elements, collapsibleGroups) {
   }
 
   for (const person of people) collectRelationships(person);
-  if (nimblerbot) {
-    collectRelationships(nimblerbot);
-    for (const container of containers) {
+  for (const system of softwareSystems) {
+    collectRelationships(system);
+    for (const container of (system.containers || [])) {
       collectRelationships(container);
       for (const comp of (container.components || [])) {
         collectRelationships(comp);
       }
     }
   }
-  for (const sys of externalSystems) collectRelationships(sys);
 
-  // Map element IDs to node IDs
   function getNodeId(elementId) {
+    if (nodeIdByElementId.has(elementId)) return nodeIdByElementId.get(elementId);
     const el = elements[elementId];
     if (!el) return null;
+    return elementId.startsWith('code_') ? elementId : safeId(el.name);
+  }
 
-    // Code flow elements use their own IDs
-    if (elementId.startsWith('code_')) return elementId;
+  function getElementGroups(elementId) {
+    const groups = new Set();
+    for (const directGroupId of elementGroupIds.get(elementId) || []) {
+      let groupId = directGroupId;
+      while (groupId) {
+        groups.add(groupId);
+        groupId = collapsibleGroups[groupId]?.parentId || null;
+      }
+    }
+    return groups;
+  }
 
-    return safeId(el.name);
+  function groupDepth(groupId) {
+    let depth = 0;
+    let current = groupId;
+    while (collapsibleGroups[current]?.parentId) {
+      depth += 1;
+      current = collapsibleGroups[current].parentId;
+    }
+    return depth;
+  }
+
+  function topLevelGroup(groupId) {
+    let current = groupId;
+    while (collapsibleGroups[current]?.parentId) current = collapsibleGroups[current].parentId;
+    return current;
+  }
+
+  const edgeGroupLines = { root: [] };
+
+  function addEdge(fromId, toId, label, sourceElementId, destinationElementId) {
+    const line = label
+      ? `  ${fromId} -->|"${escapeHtml(label)}"| ${toId}`
+      : `  ${fromId} --> ${toId}`;
+    edgeLines.push(line);
+
+    const fromGroups = getElementGroups(sourceElementId);
+    const toGroups = getElementGroups(destinationElementId);
+    const sharedGroups = [...fromGroups].filter((groupId) => toGroups.has(groupId));
+    if (sharedGroups.length > 0) {
+      const deepestGroup = sharedGroups.sort((a, b) => groupDepth(b) - groupDepth(a))[0];
+      if (!edgeGroupLines[deepestGroup]) edgeGroupLines[deepestGroup] = [];
+      edgeGroupLines[deepestGroup].push(line);
+      return;
+    }
+
+    const scopedGroups = new Set([...fromGroups, ...toGroups].map(topLevelGroup));
+    if (scopedGroups.size === 0) {
+      edgeGroupLines.root.push(line);
+      return;
+    }
+    for (const groupId of scopedGroups) {
+      if (!edgeGroupLines[groupId]) edgeGroupLines[groupId] = [];
+      edgeGroupLines[groupId].push(line);
+    }
   }
 
   for (const rel of allRelationships) {
@@ -366,32 +515,51 @@ function buildUnifiedDiagram(ws, elements, collapsibleGroups) {
       ? rel.description.substring(0, 50)
       : '';
 
-    if (label) {
-      edgeLines.push(`  ${fromId} -->|"${escapeHtml(label)}"| ${toId}`);
-    } else {
-      edgeLines.push(`  ${fromId} --> ${toId}`);
-    }
+    addEdge(fromId, toId, label, rel.sourceId, rel.destId);
   }
 
-  // Add code flow edges (manually defined since they're not in the DSL)
-  edgeLines.push(`  code_inbox --> code_runtime`);
-  edgeLines.push(`  code_runtime --> code_handlers`);
-  edgeLines.push(`  code_handlers --> code_router`);
-  edgeLines.push(`  code_router --> code_model`);
-  edgeLines.push(`  code_model --> code_tools`);
-  edgeLines.push(`  code_tools --> code_services`);
-  edgeLines.push(`  code_tools --> code_days`);
-  edgeLines.push(`  code_tools --> code_slots`);
-  edgeLines.push(`  code_tools --> code_confirm`);
-  edgeLines.push(`  code_tools --> code_handoff`);
-  edgeLines.push(`  code_tools --> code_api`);
-  edgeLines.push(`  code_tools --> code_guard`);
-  edgeLines.push(`  code_guard --> code_vlogs`);
+  const codeFlowEdges = [
+    ['code_inbox', 'code_runtime'],
+    ['code_runtime', 'code_handlers'],
+    ['code_handlers', 'code_router'],
+    ['code_router', 'code_model'],
+    ['code_model', 'code_tools'],
+    ['code_tools', 'code_services'],
+    ['code_tools', 'code_days'],
+    ['code_tools', 'code_slots'],
+    ['code_tools', 'code_confirm'],
+    ['code_tools', 'code_handoff'],
+    ['code_tools', 'code_api'],
+    ['code_tools', 'code_guard'],
+    ['code_guard', 'code_vlogs'],
+  ];
+  for (const [from, to] of codeFlowEdges) {
+    if (elements[from] && elements[to]) addEdge(from, to, '', from, to);
+  }
+
+  const primaryAnchors = systemAnchors[0] || {};
+  const overviewAnchors = [
+    usersAnchor,
+    internalAnchor,
+    primaryAnchors.applicationAnchor,
+    primaryAnchors.dataAnchor,
+    externalAnchor,
+  ].filter(Boolean);
+  for (let index = 1; index < overviewAnchors.length; index += 1) {
+    overviewEdgeLines.push(`  ${overviewAnchors[index - 1]} ~~~ ${overviewAnchors[index]}`);
+  }
+
+  const layoutNodeIds = [...new Set([usersAnchor, internalAnchor, externalAnchor, ...overviewAnchors.slice(2)])];
+  for (const nodeId of layoutNodeIds) {
+    styleLines.push(`  style ${nodeId} fill:transparent,stroke:transparent,color:transparent,opacity:0`);
+  }
 
   return {
     body: bodyLines.join('\n'),
     styles: styleLines.join('\n'),
     edges: [...new Set(edgeLines)].join('\n'), // deduplicate
+    edgeGroups: Object.fromEntries(Object.entries(edgeGroupLines).map(([groupId, lines]) => [groupId, [...new Set(lines)]])),
+    overviewEdges: overviewEdgeLines.join('\n'),
   };
 }
 
@@ -525,7 +693,7 @@ async function main() {
     console.log(`\x1b[1m[4/5] Building unified C4 diagram with collapsible subgraphs...\x1b[0m`);
 
     const collapsibleGroups = {};
-    const { body, styles, edges } = buildUnifiedDiagram(ws, elements, collapsibleGroups);
+    const { body, styles, edges, edgeGroups, overviewEdges } = buildUnifiedDiagram(ws, elements, collapsibleGroups);
 
     console.log(`\x1b[32m✓ Built unified diagram with ${Object.keys(collapsibleGroups).length} collapsible group(s)\x1b[0m`);
 
@@ -544,15 +712,17 @@ async function main() {
       mermaidBody: body,
       mermaidStyles: styles,
       mermaidEdges: edges,
+      mermaidEdgeGroups: edgeGroups,
+      mermaidOverviewEdges: overviewEdges,
     });
 
-    let fallbackMermaid = 'graph TD\n';
+    let fallbackMermaid = 'flowchart-elk TB\n';
     fallbackMermaid += '  linkStyle default stroke:#475569,color:#94a3b8\n\n';
     fallbackMermaid += body + '\n\n';
     for (const groupId of Object.keys(collapsibleGroups)) {
       fallbackMermaid += `  ${groupId}@{ view: collapsed }\n`;
     }
-    fallbackMermaid += '\n' + edges + '\n';
+    fallbackMermaid += '\n' + overviewEdges + '\n';
     fallbackMermaid += '\n' + styles + '\n';
 
     const finalHtml = templateHtml
@@ -569,7 +739,7 @@ async function main() {
     console.log(`\x1b[32m✓ Wrote artifact:\x1b[0m ${outputPath}`);
 
     console.log(`\x1b[1m[5/5] Registering and validating with Artifacts Manager...\x1b[0m`);
-    const artmanBin = '/home/ericmaster/tools/artifacts-manager/bin/artman';
+    const artmanBin = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../../../bin/artman');
 
     await execFileAsync('node', [
       artmanBin, 'add',

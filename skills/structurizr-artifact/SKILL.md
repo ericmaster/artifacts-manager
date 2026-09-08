@@ -82,8 +82,9 @@ flowchart LR
 5. **Artifacts Manager Validator Compliance:**
    - Exact Tailwind CSS CDN URL: `https://cdn.tailwindcss.com/3.4.17`
    - Exact Mermaid ESM CDN URL: `https://cdn.jsdelivr.net/npm/mermaid@11.17.1/dist/mermaid.esm.min.mjs`
-   - Valid `<pre class="mermaid" data-mermaid-source="...">` fallbacks for every diagram tab.
-   - Tags: `["architecture", "c4", "structurizr", "mermaid", "tailwind"]`.
+    - Valid `<pre class="mermaid" data-mermaid-source="...">` fallbacks for every diagram tab.
+    - Tags: `["architecture", "c4", "structurizr", "mermaid", "tailwind"]`.
+6. **C4 Layout & Edge Scope:** The root overview keeps Users above internal Application/Data bands and External Connections below them with ELK and invisible ordering anchors. Generated `mermaidEdgeGroups` are filtered to the active expansion path so drilling into a subsystem does not redraw unrelated secondary relationships.
 
 ---
 

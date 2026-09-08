@@ -200,7 +200,7 @@
         <span id="current-level-label" class="font-semibold text-cyan-300">Level 2: Containers</span>
       </span>
       <span class="text-slate-600">·</span>
-      <span id="drilldown-hint" class="text-slate-400 hidden sm:inline">Click any container to expand its internals</span>
+       <span id="drilldown-hint" class="text-slate-400 hidden sm:inline">Click a container to show scoped relationships</span>
     </div>
   </nav>
 
@@ -297,7 +297,14 @@
       startOnLoad: false,
       securityLevel: 'loose',
       theme: 'dark',
+      layout: 'elk',
+      elk: {
+        mergeEdges: true,
+        nodePlacementStrategy: 'BRANDES_KOEPF',
+        nodePlacementAlignment: 'BALANCED'
+      },
       flowchart: {
+        defaultRenderer: 'elk',
         htmlLabels: true,
         useMaxWidth: false,
         wrappingWidth: 260,
@@ -313,6 +320,8 @@
     const mermaidBody = data.mermaidBody || '';
     const mermaidStyles = data.mermaidStyles || '';
     const mermaidEdges = data.mermaidEdges || '';
+    const mermaidEdgeGroups = data.mermaidEdgeGroups || null;
+    const mermaidOverviewEdges = data.mermaidOverviewEdges || '';
 
     // Expand/collapse state: all collapsed initially
     const expandedSet = new Set();
@@ -434,7 +443,7 @@
 
     // Build Mermaid source with current expand/collapse state
     function buildMermaidSource() {
-      let source = 'graph TD\n';
+      let source = 'flowchart-elk TB\n';
       source += '  linkStyle default stroke:#475569,color:#94a3b8\n\n';
       source += mermaidBody + '\n\n';
 
@@ -445,7 +454,15 @@
         }
       }
 
-      source += '\n' + mermaidEdges + '\n';
+      let edges = mermaidEdges;
+      if (expandedSet.size === 0 && mermaidOverviewEdges) {
+        edges = mermaidOverviewEdges;
+      } else if (mermaidEdgeGroups) {
+        const activeEdges = [];
+        for (const groupId of expandedSet) activeEdges.push(...(mermaidEdgeGroups[groupId] || []));
+        edges = [...new Set(activeEdges)].join('\n');
+      }
+      source += '\n' + edges + '\n';
       source += '\n' + mermaidStyles + '\n';
 
       return source;
