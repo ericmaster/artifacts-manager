@@ -51,7 +51,7 @@ The `with-artifact` skill instructs an AI coding agent to generate an explanator
   2. **Dynamic per-question Mermaid slot:** Live Mermaid diagram that updates and highlights active paths upon choice selection.
   3. **Choice input:** Radio buttons / option cards for recommended and alternate choices.
   4. **Free-text input:** Textarea for operator notes and rationale.
-  5. **Copy export:** Single action copying fenced Markdown and JSON payload (`schema: 1, kind: "grill-session"`).
+  5. **Copy export:** Single action copying the JSON payload (`schema: 1, kind: "grill-session"`).
 - **Session Export Contract:**
   JSON payload must include `schema: 1`, `kind: "grill-session"`, `session_slug`, `round`, `frontier_locked`, and an array of `questions` with `id`, `title`, `body`, `recommended`, `choices`, `choice`, `free_text`, and `mermaid`.
 

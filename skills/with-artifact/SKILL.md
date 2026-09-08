@@ -11,7 +11,7 @@ Use this skill whenever you need to explain, visualize, or guide the user throug
 - **Database & Data Schemas:** Table relationships, SQLite D1/Postgres entity diagrams, cache layers.
 - **Refactors & Complex Changes:** Before/after comparisons, AST migrations, module decoupling maps.
 - **Conceptual Deep-Dives:** Algorithms, protocol handshakes, security threat boundaries.
-- **Grilling & Decision Questionnaires:** Interactive interview worksheets during planning/design sessions (`.artifacts-manager/grill-<session-slug>.html`) featuring frontier locking, dynamic decision-tree diagrams synced to choices, free-text inputs, and copyable Markdown+JSON exports.
+- **Grilling & Decision Questionnaires:** Interactive interview worksheets during planning/design sessions (`.artifacts-manager/grill-<session-slug>.html`) featuring frontier locking, dynamic decision-tree diagrams synced to choices, an `Other` choice for custom answers, free-text inputs, and copyable JSON exports.
 
 Artifacts are saved inside the current repository under `.artifacts-manager/`, cataloged in `manifest.json`, registered in `~/.artifacts-manager.json`, and published at `https://artifacts.nimblersoft.com`.
 
@@ -327,7 +327,7 @@ When conducting interactive grilling sessions during pre-plan or design workflow
 2. **Dynamic Per-Question Mermaid Slot (`.mermaid-container`):** Decision-tree diagram rendered via ADR-0002 runtime that dynamically updates and highlights the chosen branch when the operator selects different options.
 3. **Choice Selection Options (`.choices`):** Interactive cards/radios for recommended and alternate paths.
 4. **Free-Text Input (`textarea`):** Operator prose area for custom answers and constraints.
-5. **Copy Export (`#copy-export`):** Single action copying fenced Markdown and JSON payload (`schema: 1, kind: "grill-session"`).
+5. **Copy Export (`#copy-export`):** Single action copying the JSON payload (`schema: 1, kind: "grill-session"`).
 
 #### Export JSON Data Contract:
 ```json

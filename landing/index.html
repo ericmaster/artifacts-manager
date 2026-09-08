@@ -756,6 +756,14 @@
                         <div class="grill-choice-desc">Edge relational storage with local background sync. Requires network credentials.</div>
                       </div>
                     </label>
+
+                    <label class="grill-choice-card" data-choice="other">
+                      <input type="radio" name="q1-choice" value="other">
+                      <div class="grill-choice-content">
+                        <div class="grill-choice-title">Other</div>
+                        <div class="grill-choice-desc">Choose a different approach and explain it in the free-text field below.</div>
+                      </div>
+                    </label>
                   </div>
                 </div>
 
@@ -770,12 +778,14 @@
   q1[&quot;Persistence Strategy&quot;] --&gt; optA[&quot;Zero-DB Filesystem JSON&quot;]
   q1 --&gt; optB[&quot;Central SQLite Daemon&quot;]
   q1 --&gt; optC[&quot;Cloudflare D1 &amp; KV&quot;]
+  q1 --&gt; optOther[&quot;Other&quot;]
   classDef default fill:#0d152c,stroke:#252f55,stroke-width:1px,color:#f0f4ff;
   classDef selected fill:#2e1065,stroke:#c084fc,stroke-width:2px,color:#fff;
   class optA selected;">flowchart TD
   q1["Persistence Strategy"] --> optA["Zero-DB Filesystem JSON"]
   q1 --> optB["Central SQLite Daemon"]
   q1 --> optC["Cloudflare D1 & KV"]
+  q1 --> optOther["Other"]
   classDef default fill:#0d152c,stroke:#252f55,stroke-width:1px,color:#f0f4ff;
   classDef selected fill:#2e1065,stroke:#c084fc,stroke-width:2px,color:#fff;
   class optA selected;</pre>
@@ -831,6 +841,14 @@
                         <div class="grill-choice-desc">No dynamic JS allowed. Converts diagrams to static vectors at generation time.</div>
                       </div>
                     </label>
+
+                    <label class="grill-choice-card" data-choice="other">
+                      <input type="radio" name="q2-choice" value="other">
+                      <div class="grill-choice-content">
+                        <div class="grill-choice-title">Other</div>
+                        <div class="grill-choice-desc">Choose a different isolation strategy and explain it in the free-text field below.</div>
+                      </div>
+                    </label>
                   </div>
                 </div>
 
@@ -845,12 +863,14 @@
   q2[&quot;Sandboxing Strategy&quot;] --&gt; optA[&quot;Sandboxed Iframe Hub&quot;]
   q2 --&gt; optB[&quot;Shadow DOM Web Components&quot;]
   q2 --&gt; optC[&quot;Static Pre-rendered SVG&quot;]
+  q2 --&gt; optOther[&quot;Other&quot;]
   classDef default fill:#0d152c,stroke:#252f55,stroke-width:1px,color:#f0f4ff;
   classDef selected fill:#2e1065,stroke:#c084fc,stroke-width:2px,color:#fff;
   class optA selected;">flowchart TD
   q2["Sandboxing Strategy"] --> optA["Sandboxed Iframe Hub"]
   q2 --> optB["Shadow DOM Web Components"]
   q2 --> optC["Static Pre-rendered SVG"]
+  q2 --> optOther["Other"]
   classDef default fill:#0d152c,stroke:#252f55,stroke-width:1px,color:#f0f4ff;
   classDef selected fill:#2e1065,stroke:#c084fc,stroke-width:2px,color:#fff;
   class optA selected;</pre>
@@ -873,7 +893,7 @@
                     <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
                     <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
                   </svg>
-                  <span>Copy Export (Markdown + JSON)</span>
+                  <span>Copy Export (JSON)</span>
                 </button>
                 <span id="grill-export-status" style="font-size: 0.8rem; color: #00f0ff; font-weight: 600;"></span>
               </div>

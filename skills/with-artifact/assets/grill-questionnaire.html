@@ -173,8 +173,8 @@
           <label class="choice-option" data-choice-id="other">
             <input type="radio" name="Q1-choice" value="other" class="mt-1 accent-indigo-500">
             <div>
-              <div class="text-sm font-medium text-slate-100">Other Approach</div>
-              <div class="text-xs text-slate-400">Provide custom rationale in free text below</div>
+              <div class="text-sm font-medium text-slate-100">Other</div>
+              <div class="text-xs text-slate-400">Choose a different approach and explain it in the free-text field below</div>
             </div>
           </label>
         </div>
@@ -187,10 +187,10 @@
           <span class="text-xs text-indigo-400 font-mono" id="Q1-diagram-status">Live diagram synced with choice</span>
         </div>
         <div class="mermaid-container" id="Q1-diagram-wrapper" tabindex="0">
-          <pre class="mermaid" id="Q1-mermaid" data-mermaid-source="flowchart TD&#10;  outcome[&quot;Successful outcome&quot;] --&gt; slice[&quot;Smallest vertical slice&quot;]&#10;  outcome --&gt; scope[&quot;Full scope&quot;]&#10;  outcome --&gt; other[&quot;Other approach&quot;]&#10;  classDef default fill:#1e293b,stroke:#475569,stroke-width:1px,color:#f8fafc;&#10;  classDef selected fill:#312e81,stroke:#818cf8,stroke-width:2px,color:#fff;&#10;  class slice selected;">flowchart TD
+          <pre class="mermaid" id="Q1-mermaid" data-mermaid-source="flowchart TD&#10;  outcome[&quot;Successful outcome&quot;] --&gt; slice[&quot;Smallest vertical slice&quot;]&#10;  outcome --&gt; scope[&quot;Full scope&quot;]&#10;  outcome --&gt; other[&quot;Other&quot;]&#10;  classDef default fill:#1e293b,stroke:#475569,stroke-width:1px,color:#f8fafc;&#10;  classDef selected fill:#312e81,stroke:#818cf8,stroke-width:2px,color:#fff;&#10;  class slice selected;">flowchart TD
   outcome["Successful outcome"] --> slice["Smallest vertical slice"]
   outcome --> scope["Full scope"]
-  outcome --> other["Other approach"]
+  outcome --> other["Other"]
   classDef default fill:#1e293b,stroke:#475569,stroke-width:1px,color:#f8fafc;
   classDef selected fill:#312e81,stroke:#818cf8,stroke-width:2px,color:#fff;
   class slice selected;</pre>
@@ -216,7 +216,7 @@
       <span id="export-status" class="text-sm font-medium text-cyan-400"></span>
     </div>
     <div class="text-xs text-slate-500">
-      Exports fenced Markdown + JSON (<span class="font-mono text-slate-400">schema: 1, kind: grill-session</span>)
+      Copies JSON answers (<span class="font-mono text-slate-400">schema: 1, kind: grill-session</span>)
     </div>
   </footer>
 
@@ -269,45 +269,14 @@
       };
     }
 
-    function toMarkdown(data) {
-      const lines = ["# Grill export", "", `- frontier_locked: ${data.frontier_locked}`, ""];
-      data.questions.forEach((q) => {
-        lines.push(
-          `## ${q.id} — ${q.title}`,
-          "",
-          q.body,
-          "",
-          `Recommended: ${q.recommended}`,
-          "",
-          `Choice: ${q.choice}`,
-          "",
-          q.free_text,
-          "",
-          "```mermaid",
-          q.mermaid.trim(),
-          "```",
-          ""
-        );
-      });
-      return lines.join("\n");
-    }
-
     document.getElementById("copy-export").addEventListener("click", async () => {
       const data = collect();
-      const payload = [
-        "```markdown",
-        toMarkdown(data).trim(),
-        "```",
-        "",
-        "```json",
-        JSON.stringify(data, null, 2),
-        "```"
-      ].join("\n");
+      const payload = JSON.stringify(data, null, 2);
 
       try {
         await navigator.clipboard.writeText(payload);
         const status = document.getElementById("export-status");
-        status.textContent = "✓ Copied fenced Markdown plus JSON";
+        status.textContent = "✓ Copied JSON answers";
         setTimeout(() => { status.textContent = ""; }, 4000);
       } catch (err) {
         console.error("Clipboard copy failed:", err);

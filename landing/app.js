@@ -284,22 +284,24 @@ function initTopologyDemo() {
 
 // 7. Demo 2: Grill Questionnaire & Reactive Decisions
 function getQ1DiagramSource(choiceVal) {
-  const activeNode = choiceVal === 'sqlite-daemon' ? 'optB' : (choiceVal === 'cloud-d1' ? 'optC' : 'optA');
+  const activeNode = choiceVal === 'sqlite-daemon' ? 'optB' : (choiceVal === 'cloud-d1' ? 'optC' : (choiceVal === 'other' ? 'optOther' : 'optA'));
   return `flowchart TD
   q1["Persistence Strategy"] --> optA["Zero-DB Filesystem JSON"]
   q1 --> optB["Central SQLite Daemon"]
   q1 --> optC["Cloudflare D1 & KV"]
+  q1 --> optOther["Other"]
   classDef default fill:#0d152c,stroke:#252f55,stroke-width:1px,color:#f0f4ff;
   classDef selected fill:#2e1065,stroke:#c084fc,stroke-width:2px,color:#fff;
   class ${activeNode} selected;`;
 }
 
 function getQ2DiagramSource(choiceVal) {
-  const activeNode = choiceVal === 'shadow-dom' ? 'optB' : (choiceVal === 'static-svg' ? 'optC' : 'optA');
+  const activeNode = choiceVal === 'shadow-dom' ? 'optB' : (choiceVal === 'static-svg' ? 'optC' : (choiceVal === 'other' ? 'optOther' : 'optA'));
   return `flowchart TD
   q2["Sandboxing Strategy"] --> optA["Sandboxed Iframe Hub"]
   q2 --> optB["Shadow DOM Web Components"]
   q2 --> optC["Static Pre-rendered SVG"]
+  q2 --> optOther["Other"]
   classDef default fill:#0d152c,stroke:#252f55,stroke-width:1px,color:#f0f4ff;
   classDef selected fill:#2e1065,stroke:#c084fc,stroke-width:2px,color:#fff;
   class ${activeNode} selected;`;
@@ -369,6 +371,7 @@ function initGrillQuestionnaireDemo() {
             title: 'State Persistence Strategy',
             body: 'How should multi-project artifacts store central state and manifest indexes across local repositories?',
             recommended: 'Zero-DB filesystem JSON manifests (~/.artifacts-manager.json + manifest.json).',
+            choices: ['zero-db', 'sqlite-daemon', 'cloud-d1', 'other'],
             choice: q1Choice,
             free_text: q1Free,
             mermaid: getQ1DiagramSource(q1Choice)
@@ -378,6 +381,7 @@ function initGrillQuestionnaireDemo() {
             title: 'Execution Isolation & Sandboxing',
             body: 'How should interactive HTML artifacts with arbitrary JavaScript and custom styles be safely isolated?',
             recommended: 'Sandboxed iframes served from dedicated /api/raw/ endpoint with strict CSP.',
+            choices: ['iframe-sandbox', 'shadow-dom', 'static-svg', 'other'],
             choice: q2Choice,
             free_text: q2Free,
             mermaid: getQ2DiagramSource(q2Choice)
@@ -385,51 +389,12 @@ function initGrillQuestionnaireDemo() {
         ]
       };
 
-      const markdownOutput = [
-        '# Architectural Decision Stress-Test Grill Export',
-        '',
-        `- frontier_locked: ${exportData.frontier_locked}`,
-        `- round: 1`,
-        '',
-        '## Q1 — State Persistence Strategy',
-        exportData.questions[0].body,
-        '',
-        `Recommended: ${exportData.questions[0].recommended}`,
-        `Choice: ${exportData.questions[0].choice}`,
-        '',
-        exportData.questions[0].free_text,
-        '',
-        '```mermaid',
-        exportData.questions[0].mermaid.trim(),
-        '```',
-        '',
-        '## Q2 — Execution Isolation & Sandboxing',
-        exportData.questions[1].body,
-        '',
-        `Recommended: ${exportData.questions[1].recommended}`,
-        `Choice: ${exportData.questions[1].choice}`,
-        '',
-        exportData.questions[1].free_text,
-        '',
-        '```mermaid',
-        exportData.questions[1].mermaid.trim(),
-        '```'
-      ].join('\n');
-
-      const payload = [
-        '```markdown',
-        markdownOutput,
-        '```',
-        '',
-        '```json',
-        JSON.stringify(exportData, null, 2),
-        '```'
-      ].join('\n');
+      const payload = JSON.stringify(exportData, null, 2);
 
       try {
         await navigator.clipboard.writeText(payload);
         if (exportStatus) {
-          exportStatus.textContent = '✓ Copied fenced Markdown + JSON';
+          exportStatus.textContent = '✓ Copied JSON answers';
           setTimeout(() => { exportStatus.textContent = ''; }, 3500);
         }
       } catch (err) {
