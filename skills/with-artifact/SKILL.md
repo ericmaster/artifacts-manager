@@ -118,9 +118,9 @@ Do not treat the presence or count of `<svg>` elements as success: Mermaid rende
 
 Keep runtime QA local. From the Artifacts Manager checkout, run `npm run dev` and use `http://127.0.0.1:41820/project/<projectSlug>/artifact/<artifactId>` as the validation target. The loopback viewer needs no tunnel or public exposure.
 
-### Step 5: Preserve Metadata and Share Direct Link
+### Step 5: Preserve Metadata and Deliver the Chat Reply
 Preserve an existing artifact's `id`, `file`, and `createdAt`; update only `updatedAt` and relevant lowercase tags such as `tailwind` and `mermaid`.
-In your response, provide the canonical public URL:
+After generation, registration, and validation succeed, send the [Chat delivery](#5-chat-delivery) reply. That reply contains exactly one canonical public URL:
 `https://artifacts.nimblersoft.com/project/<projectSlug>/artifact/<artifactId>`
 
 The CLI may print a localhost viewer URL. Treat it as local diagnostics only; user-facing links always use `https://artifacts.nimblersoft.com`.
@@ -325,8 +325,8 @@ When conducting interactive grilling sessions during pre-plan or design workflow
 #### Required Widget Contract:
 1. **Frontier Lock (`#frontier-lock`):** Amber status banner and lock checkbox indicating whether this round's questions are locked.
 2. **Dynamic Per-Question Mermaid Slot (`.mermaid-container`):** Decision-tree diagram rendered via ADR-0002 runtime that dynamically updates and highlights the chosen branch when the operator selects different options.
-3. **Choice Selection Options (`.choices`):** Interactive cards/radios for recommended and alternate paths.
-4. **Free-Text Input (`textarea`):** Operator prose area for custom answers and constraints.
+3. **Choice Selection Options (`.choices`):** Interactive cards/radios for recommended and alternate paths. Every question MUST end with an `Other` option.
+4. **Free-Text Input (`textarea`):** Operator prose area for custom answers and constraints. When `Other` is selected, the free-text value is the authoritative answer; do not restrict the answer to the predefined choices.
 5. **Copy Export (`#copy-export`):** Single action copying the JSON payload (`schema: 1, kind: "grill-session"`).
 
 #### Export JSON Data Contract:
@@ -346,8 +346,66 @@ When conducting interactive grilling sessions during pre-plan or design workflow
       "choices": ["smallest-slice", "full-scope", "other"],
       "choice": "smallest-slice",
       "free_text": "",
+      "answer": "smallest-slice",
       "mermaid": "flowchart TD..."
     }
   ]
 }
 ```
+
+---
+
+## 5. Chat delivery
+
+After the HTML or Markdown artifact is generated, registered, and validated, the final chat reply is ordinary Markdown. Do not add an OpenChamber extension, iframe, panel, rail, or tool card. Do not paste artifact HTML, JavaScript, iframe markup, raw SVG, or a Mermaid error SVG. Do not register a second artifact for this reply. HTML generation, storage, registration, the viewer, pinned Mermaid `11.17.1`, and `artman validate` stay unchanged. OpenChamber renders chat fences with its own Mermaid implementation; that does not replace artifact QA.
+
+The reply contains:
+
+1. A title and a brief overview of the artifact.
+2. Every original Mermaid diagram, in artifact reading order, as its own section. Each section has a descriptive heading, one or two sentences explaining that view, and the decoded original source in a separate triple-backtick `mermaid` fence. Do not rewrite, omit, merge, or truncate diagrams.
+3. Exactly one canonical viewer link: `https://artifacts.nimblersoft.com/project/<projectSlug>/artifact/<artifactId>`.
+
+Extract sources in document order from HTML `pre.mermaid[data-mermaid-source]` (decode the attribute; do not emit the escaped attribute text or the rendered SVG) or from Markdown `mermaid` fences. The chat fence must be the original source.
+
+**No diagram:** If the artifact has no Mermaid source, send a concise synopsis and the same single canonical link. Do not invent a diagram.
+
+**Unsupported renderer:** If OpenChamber cannot render a source, keep that source in its readable `mermaid` fence, do not falsely claim rendered, and direct the user to the canonical HTML viewer link.
+
+### Two-diagram sample
+
+````markdown
+# Auth Request Path
+
+A request is admitted at the edge, then queued and stored. Open the interactive artifact for node inspection.
+
+## Edge admission
+
+The gateway checks the token before any worker runs. Failures stop here.
+
+```mermaid
+flowchart LR
+  client[Client] --> gateway[API Gateway]
+```
+
+## Dispatch and store
+
+The orchestrator queues accepted work and writes the result.
+
+```mermaid
+flowchart LR
+  gateway[API Gateway] --> orchestrator[Orchestrator]
+  orchestrator --> storage[D1]
+```
+
+https://artifacts.nimblersoft.com/project/my-project/artifact/auth-request-path
+````
+
+### No-diagram sample
+
+````markdown
+# Release Notes
+
+This artifact is a written walkthrough of the migration steps. It has no diagram.
+
+https://artifacts.nimblersoft.com/project/my-project/artifact/release-notes
+````

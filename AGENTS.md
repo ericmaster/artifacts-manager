@@ -79,6 +79,7 @@ npm run dev
 
 - **Zero-DB File System Contracts.** All state is persisted either in `~/.artifacts-manager.json` (central registry) or in `<project>/.artifacts-manager/manifest.json` (project-scoped artifacts catalog). Decision record: `docs/adr/0001-architecture-and-stack.md`. Spec: `docs/specs/artifacts-manager-core.md`.
 - **Iframe Sandboxing.** HTML artifacts are served from `/api/raw/[projectSlug]/[...file]` and rendered inside an isolated `<iframe>` to prevent script execution leaks, global variable collisions, and CSS pollution.
+- **Chat previews.** `with-artifact` replies include each original Mermaid diagram in its own fenced block and one canonical link to the full interactive viewer. See `docs/specs/with-artifact-skill.md`.
 - **Markdown Rendering.** Markdown is sanitized server-side after `marked`; Mermaid fences render client-only with strict security and readable escaped fallback source.
 - **Artifact Runtime Contract.** HTML artifacts use Tailwind `3.4.17` and Mermaid `11.17.1` from the exact CDN URLs in ADR-0002. Preserve artifact IDs/files/createdAt during migrations.
 - **Validation.** `artman validate` never writes and reports manifest containment/currentness, runtime URLs, Mermaid fallback syntax, migration identity, and narrow legacy static-SVG warnings. Browser QA must test the sandboxed iframe and reject Mermaid error SVGs/text; SVG presence alone is not success. `vespera:kth-irl-self-evaluation` allowlists only `canvas#radar` plus decorative icon SVGs.

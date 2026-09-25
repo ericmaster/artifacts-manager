@@ -3,7 +3,7 @@ title: "Spec: with-artifact Skill"
 type: spec
 status: active
 covers: skills/with-artifact/SKILL.md
-last_checked: 2026-09-03
+last_checked: 2026-09-24
 ---
 
 # Spec: `with-artifact` Skill
@@ -49,11 +49,11 @@ The `with-artifact` skill instructs an AI coding agent to generate an explanator
 - **Required Widgets:**
   1. **Frontier lock:** Status indicator and toggle to lock current questions.
   2. **Dynamic per-question Mermaid slot:** Live Mermaid diagram that updates and highlights active paths upon choice selection.
-  3. **Choice input:** Radio buttons / option cards for recommended and alternate choices.
-  4. **Free-text input:** Textarea for operator notes and rationale.
+  3. **Choice input:** Every question ends with an `Other` radio/card after its recommended and alternate choices.
+  4. **Free-text input:** Textarea for operator notes and rationale. When `Other` is selected, this value is the authoritative answer rather than a restricted option.
   5. **Copy export:** Single action copying the JSON payload (`schema: 1, kind: "grill-session"`).
 - **Session Export Contract:**
-  JSON payload must include `schema: 1`, `kind: "grill-session"`, `session_slug`, `round`, `frontier_locked`, and an array of `questions` with `id`, `title`, `body`, `recommended`, `choices`, `choice`, `free_text`, and `mermaid`.
+  JSON payload must include `schema: 1`, `kind: "grill-session"`, `session_slug`, `round`, `frontier_locked`, and an array of `questions` with `id`, `title`, `body`, `recommended`, `choices`, `choice`, `free_text`, `answer`, and `mermaid`. `answer` equals `free_text` when `choice` is `other`; otherwise it equals `choice`.
 
 ### C. Markdown Artifacts
 - **Rich Document:** Standard Markdown with GitHub alerts (`> [!NOTE]`, `> [!IMPORTANT]`, etc.), tables, code blocks with syntax highlighting, and Mermaid code fences (`mermaid`).
@@ -83,6 +83,22 @@ When creating an artifact:
    - `createdAt`: ISO timestamp
     - `updatedAt`: ISO timestamp; preserve existing `id`, `file`, and `createdAt`, updating only this timestamp and relevant lowercase tags during migration.
 3. Register `<project-root>` in `~/.artifacts-manager.json` if not already present.
-4. Output the canonical public URL for the user to open the artifact:
+4. After validation, deliver the chat reply in §4. It contains exactly one canonical public URL:
    `https://artifacts.nimblersoft.com/project/<projectSlug>/artifact/<artifactId>`
-   Treat localhost URLs as local diagnostics only.
+   Treat localhost URLs as local diagnostics only. Do not register a second artifact for the chat reply.
+
+---
+
+## 4. Chat delivery
+
+After successful generation, registration, and validation, the final chat reply is ordinary Markdown. It does not change artifact storage, HTML generation, the viewer, pinned Mermaid `https://cdn.jsdelivr.net/npm/mermaid@11.17.1/dist/mermaid.esm.min.mjs`, or `artman validate`. Do not register a duplicate Markdown artifact, paste HTML, JavaScript, iframe markup, raw SVG, or a Mermaid error SVG, or add an extension, iframe, panel, rail, or tool card.
+
+The reply contains:
+
+1. A title and a brief overview.
+2. Each original Mermaid diagram in artifact reading order as a separate section: a descriptive heading, one or two explanation sentences, and the decoded original source in its own triple-backtick `mermaid` fence. Do not rewrite, omit, merge, or truncate diagrams.
+3. Exactly one canonical link: `https://artifacts.nimblersoft.com/project/<projectSlug>/artifact/<artifactId>`.
+
+**No diagram:** Send a concise synopsis plus that link. Do not invent a diagram.
+
+**Unsupported renderer:** If OpenChamber cannot render a source, keep that readable fenced source, do not falsely claim rendered, and direct the user to the canonical HTML viewer link. OpenChamber's renderer is separate from the pinned artifact runtime.

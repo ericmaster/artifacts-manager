@@ -247,6 +247,8 @@
     function collect() {
       const q = document.querySelector(".question");
       const choice = document.querySelector("input[name='Q1-choice']:checked");
+      const selectedChoice = choice ? choice.value : "";
+      const freeText = document.getElementById("Q1-free") ? document.getElementById("Q1-free").value : "";
       const mermaidEl = document.getElementById("Q1-mermaid");
       const currentMermaid = mermaidEl ? (mermaidEl.dataset.mermaidSource || mermaidEl.textContent.trim()) : "";
 
@@ -262,8 +264,9 @@
           body: document.getElementById("Q1-body") ? document.getElementById("Q1-body").textContent.trim() : "",
           recommended: document.getElementById("Q1-recommended") ? document.getElementById("Q1-recommended").textContent.replace("Recommended:", "").trim() : "",
           choices: [...document.querySelectorAll("input[name='Q1-choice']")].map((el) => el.value),
-          choice: choice ? choice.value : "",
-          free_text: document.getElementById("Q1-free") ? document.getElementById("Q1-free").value : "",
+          choice: selectedChoice,
+          free_text: freeText,
+          answer: selectedChoice === "other" ? freeText : selectedChoice,
           mermaid: currentMermaid
         }]
       };
