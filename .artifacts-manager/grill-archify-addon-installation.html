@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grill: add-on de Archify · ronda 5</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <style>
+    :root { --bg:#090d16; --card:#131b2e; --border:rgba(255,255,255,.1); --text:#f8fafc; --indigo:#6366f1; --amber:#f59e0b; }
+    * { box-sizing:border-box; } body { margin:0; min-height:100vh; padding:24px; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,sans-serif; }
+    #frontier-lock, .question-card { border:1px solid var(--border); border-radius:12px; padding:20px; margin:0 auto 20px; max-width:960px; background:var(--card); }
+    #frontier-lock { border-color:rgba(245,158,11,.45); background:rgba(245,158,11,.08); } #frontier-lock[data-locked="true"] { box-shadow:0 0 16px -4px rgba(245,158,11,.35); }
+    .settled { border:1px solid rgba(16,185,129,.35); border-radius:8px; padding:12px; margin-top:14px; background:rgba(16,185,129,.08); font-size:.9rem; }
+    .notice { border:1px solid rgba(245,158,11,.35); border-radius:8px; padding:12px; margin-top:14px; background:rgba(245,158,11,.07); font-size:.9rem; color:#fde68a; }
+    .choices { display:grid; gap:10px; } .choice-option { display:flex; gap:10px; align-items:flex-start; border:1px solid var(--border); border-radius:8px; padding:12px; cursor:pointer; background:rgba(255,255,255,.02); }
+    .choice-option.selected { border-color:var(--indigo); background:rgba(99,102,241,.13); } .choice-option input { margin-top:4px; accent-color:var(--indigo); }
+     .mermaid-container { overflow:auto; border:1px solid var(--border); background:#0f172a; border-radius:8px; padding:12px; } .mermaid-container pre { white-space:pre-wrap; } .mermaid-container svg { display:block; width:auto !important; height:auto !important; max-width:none !important; }
+    textarea { width:100%; min-height:76px; background:rgba(255,255,255,.03); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:10px; font:inherit; }
+    button { border:0; border-radius:8px; padding:10px 16px; background:var(--indigo); color:#fff; font-weight:600; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <header id="frontier-lock" data-locked="true">
+    <div class="flex items-start justify-between gap-4">
+      <div><p class="text-xs font-bold uppercase tracking-wider text-amber-300">Frontier lock · ronda 5</p><h1 class="mt-1 text-xl font-bold">Add-on opcional de Archify</h1><p class="mt-1 text-sm text-slate-300">Decisión final derivada del enlace JSON compañero y de las acciones destructivas existentes.</p></div>
+      <label class="flex shrink-0 items-center gap-2 text-sm text-amber-100"><input id="frontier-locked" type="checkbox" checked class="accent-amber-500"> Bloqueado</label>
+    </div>
+    <div class="settled"><strong class="text-emerald-300">Resuelto:</strong> selección explícita de agente · release estable registrada · metadata de fuente/generador/versión · perfil Archify estricto.</div>
+    <div class="notice"><strong>Dependencia:</strong> el HTML tendrá un `sourceFile` JSON enlazable. La política de archivo debe evitar tanto JSON huérfanos como borrado accidental de una fuente compartida.</div>
+  </header>
+  <main id="questions">
+    <article class="question-card question" data-id="Q15">
+      <div class="flex items-center justify-between gap-3"><h2 class="text-lg font-bold"><span class="mr-2 rounded bg-indigo-900 px-2 py-1 font-mono text-xs text-indigo-200">Q15</span>Ciclo de vida del JSON compañero</h2><span class="text-xs text-slate-400">Ronda 5</span></div>
+      <p id="Q15-body" class="mt-4 text-sm text-slate-200">¿Qué debe ocurrir con el JSON IR cuando se archiva, restaura o elimina el HTML Archify?</p>
+      <p id="Q15-recommended" class="mt-2 text-sm italic text-slate-400"><span class="font-semibold text-amber-300">Recomendado:</span> archivar/restaurar conjuntamente y eliminar el JSON junto con el HTML por defecto; `--keep-file` debe conservar ambos archivos para recuperación manual.</p>
+      <div class="choices mt-4" data-question="Q15">
+        <label class="choice-option selected" data-choice-id="coupled-lifecycle"><input type="radio" name="Q15-choice" value="coupled-lifecycle" checked><span><strong>Ciclo de vida acoplado</strong><br><small class="text-slate-400">El compañero sigue al HTML; el borrado explícito elimina ambos salvo `--keep-file`.</small></span></label>
+        <label class="choice-option" data-choice-id="preserve-source"><input type="radio" name="Q15-choice" value="preserve-source"><span><strong>Preservar siempre JSON</strong><br><small class="text-slate-400">Archivar/eliminar el HTML nunca borra la fuente.</small></span></label>
+        <label class="choice-option" data-choice-id="delete-prompt"><input type="radio" name="Q15-choice" value="delete-prompt"><span><strong>Preguntar al borrar</strong><br><small class="text-slate-400">Cada eliminación solicita una decisión adicional sobre la fuente.</small></span></label>
+        <label class="choice-option" data-choice-id="other"><input type="radio" name="Q15-choice" value="other"><span><strong>Other</strong><br><small class="text-slate-400">Describe otra política abajo.</small></span></label>
+      </div>
+      <div class="mt-4 mermaid-container" tabindex="0"><pre class="mermaid" data-mermaid-source="flowchart TD&#10;  html[HTML Archify] --> json[JSON IR compañero]&#10;  html --> archive[Archive / restore juntos]&#10;  html --> delete[Delete]&#10;  delete --> both[Eliminar ambos]&#10;  delete --> keep[--keep-file conserva ambos]&#10;  html --> preserve[Preservar siempre JSON]&#10;  delete --> prompt[Preguntar al borrar]&#10;  html --> custom[Otra política]&#10;  classDef selected fill:#312e81,stroke:#818cf8,stroke-width:2px,color:#fff;&#10;  class both selected;">flowchart TD
+  html[HTML Archify] --> json[JSON IR compañero]
+  html --> archive[Archive / restore juntos]
+  html --> delete[Delete]
+  delete --> both[Eliminar ambos]
+  delete --> keep[--keep-file conserva ambos]
+  html --> preserve[Preservar siempre JSON]
+  delete --> prompt[Preguntar al borrar]
+  html --> custom[Otra política]
+  classDef selected fill:#312e81,stroke:#818cf8,stroke-width:2px,color:#fff;
+  class both selected;</pre></div>
+      <label class="mt-4 block text-xs font-semibold uppercase tracking-wide text-slate-400" for="Q15-free">Free-text input</label><textarea id="Q15-free" placeholder="Restricciones o alternativa..."></textarea>
+    </article>
+  </main>
+  <footer class="mx-auto flex max-w-[960px] flex-wrap items-center justify-between gap-3 pb-4"><button id="copy-export" type="button">Copy export</button><span id="export-status" class="text-sm text-cyan-300"></span></footer>
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.17.1/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad:false, securityLevel:'strict', theme:'dark', flowchart:{ htmlLabels:false, useMaxWidth:false, wrappingWidth:240 } });
+    let sequence = 0;
+    async function render(element, source) { const revision = (element.revision || 0) + 1; element.revision = revision; element.dataset.mermaidSource = source; try { await mermaid.parse(source); const { svg, bindFunctions } = await mermaid.render(`grill-${++sequence}`, source); if (element.revision !== revision) return; element.innerHTML = svg; element.dataset.mermaidState = 'rendered'; bindFunctions?.(element); } catch (error) { if (element.revision !== revision) return; element.textContent = source; element.dataset.mermaidState = 'error'; console.error('Mermaid render error', error); } }
+    const diagram = document.querySelector('.question .mermaid');
+    const initialSource = diagram.dataset.mermaidSource;
+    const activeNodes = { 'coupled-lifecycle':'both', 'preserve-source':'preserve', 'delete-prompt':'prompt', other:'custom' };
+    function diagramSource(choice) { return initialSource.replace(/class both selected;$/, `class ${activeNodes[choice]} selected;`); }
+    await render(diagram, initialSource);
+    document.querySelectorAll('.choices').forEach(group => group.addEventListener('change', event => { if (!event.target.matches('input[type="radio"]')) return; group.querySelectorAll('.choice-option').forEach(option => option.classList.toggle('selected', option.dataset.choiceId === event.target.value)); render(diagram, diagramSource(event.target.value)); }));
+    const lock = document.querySelector('#frontier-lock'); document.querySelector('#frontier-locked').addEventListener('change', event => { lock.dataset.locked = String(event.target.checked); });
+    document.querySelector('#copy-export').addEventListener('click', async () => { const questions = [...document.querySelectorAll('.question')].map(question => { const id = question.dataset.id; const choice = question.querySelector(`input[name="${id}-choice"]:checked`).value; const free = question.querySelector(`#${id}-free`).value; return { id, title: question.querySelector('h2').lastChild.textContent.trim(), body: question.querySelector(`#${id}-body`).textContent, recommended: question.querySelector(`#${id}-recommended`).textContent.replace('Recomendado:', '').trim(), choices:[...question.querySelectorAll('input[type="radio"]')].map(input => input.value), choice, free_text:free, answer:choice === 'other' ? free : choice, mermaid:question.querySelector('.mermaid').dataset.mermaidSource }; }); const payload = { schema:1, kind:'grill-session', session_slug:'archify-addon-installation', round:5, frontier_locked:document.querySelector('#frontier-locked').checked, questions }; await navigator.clipboard.writeText(JSON.stringify(payload, null, 2)); document.querySelector('#export-status').textContent = 'Export copied.'; });
+  </script>
+</body>
+</html>

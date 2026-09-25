@@ -34,6 +34,34 @@
       ],
       "createdAt": "2026-08-18T20:31:00.595Z",
       "updatedAt": "2026-08-24T00:00:00.000Z"
+    },
+    {
+      "id": "grill-archify-addon-installation",
+      "title": "Grill: add-on opcional de Archify · ronda 5",
+      "type": "html",
+      "file": "grill-archify-addon-installation.html",
+      "description": "Cuestionario de planificación para la instalación opcional de Archify.",
+      "tags": [
+        "planning",
+        "grill",
+        "archify",
+        "integration"
+      ],
+      "createdAt": "2026-09-20T00:00:00.000Z",
+      "updatedAt": "2026-09-25T12:46:33.000Z"
+    },
+    {
+      "id": "openchamber-inline-tool-identity",
+      "title": "OpenChamber inline display decision",
+      "type": "html",
+      "file": "grill-openchamber-inline-tool.html",
+      "description": "Choose native assistant Mermaid rendering or a dedicated tool renderer.",
+      "tags": [
+        "planning",
+        "openchamber"
+      ],
+      "createdAt": "2026-09-24T12:13:12.597Z",
+      "updatedAt": "2026-09-25T12:46:33.000Z"
     }
   ]
 }

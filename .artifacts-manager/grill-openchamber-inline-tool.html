@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenChamber inline Mermaid · decision</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <style>
+    body { background:#090d16; color:#f8fafc; font:16px/1.5 system-ui,sans-serif; margin:0; padding:24px; }
+    main { max-width:780px; margin:auto; }
+    #frontier-lock, .question { padding:20px; border:1px solid #34415b; border-radius:12px; background:#131b2e; margin-bottom:16px; }
+    #frontier-lock { border-color:#f59e0b; }
+    .choices { display:grid; gap:8px; margin:16px 0; }
+    .choices label { padding:12px; border:1px solid #475569; border-radius:8px; cursor:pointer; }
+    .choices label:has(:checked) { border-color:#818cf8; background:#312e81; }
+    .mermaid-container { overflow:auto; border:1px solid #475569; border-radius:8px; padding:10px; }
+     .mermaid-container pre { white-space:pre-wrap; }
+     .mermaid-container svg { display:block; width:auto !important; height:auto !important; max-width:none !important; }
+    textarea { width:100%; min-height:110px; padding:12px; color:#fff; background:#0f172a; border:1px solid #475569; border-radius:8px; box-sizing:border-box; }
+    button { background:#6366f1; color:white; border:0; border-radius:8px; padding:12px; cursor:pointer; }
+    .muted { color:#cbd5e1; }
+  </style>
+</head>
+<body>
+<main>
+  <section id="frontier-lock" data-locked="true">
+    <h1>OpenChamber inline Mermaid display</h1>
+    <label><input id="locked" type="checkbox" checked> Frontier locked: confirm extension scope</label>
+    <p class="muted">Settled: keep normal HTML artifact generation and show a static in-chat Markdown version with every Mermaid diagram plus a link to the full interactive artifact. For multiple diagrams, the agent's response reads better than a scrollable tool-result card. OpenChamber renders Mermaid fences natively, so this path needs no extension.</p>
+  </section>
+  <article class="question" data-id="Q1">
+    <h2>Q1 · Should we replace the original extension requirement?</h2>
+    <p>Your initial specification mandated an installable <code>contributes.tools</code> extension. The better multi-diagram UX uses ordinary assistant Markdown with one section per diagram; OpenChamber already renders those Mermaid fences natively. Keeping the extension requirement would require a dedicated named chat tool, since this repository currently only ships the <code>artman</code> CLI. A blanket shell-tool match would restyle unrelated calls.</p>
+    <p class="muted">Recommended: amend scope to a documented artifact-response contract: concise headings, one Mermaid fence per diagram, and a link to the existing full HTML artifact. No tool card or extension needed.</p>
+    <div class="mermaid-container" tabindex="0"><pre class="mermaid" data-mermaid-source="flowchart LR&#10;  generate[Generate HTML as usual] --> source[Mermaid source]&#10;  source --> fence[Mermaid fence in chat]&#10;  fence --> renderer[OpenChamber native diagram]&#10;  generate --> viewer[Full artifact viewer link]&#10;  source --> tool[Dedicated named tool and extension]&#10;  source --> other[Other contract]&#10;  classDef selected fill:#312e81,stroke:#818cf8,stroke-width:2px,color:#fff;&#10;  class fence selected;">flowchart LR
+  generate[Generate HTML as usual] --> source[Mermaid source]
+  source --> fence[Mermaid fence in chat]
+  fence --> renderer[OpenChamber native diagram]
+  generate --> viewer[Full artifact viewer link]
+  source --> tool[Dedicated named tool and extension]
+  source --> other[Other contract]
+  classDef selected fill:#312e81,stroke:#818cf8,stroke-width:2px,color:#fff;
+  class fence selected;</pre></div>
+    <div class="choices">
+      <label><input type="radio" name="target" value="assistant" checked> Yes, replace extension with the simpler documented assistant-response contract</label>
+      <label><input type="radio" name="target" value="tool"> No, keep the installable extension: include a dedicated named tool to supply diagram Markdown and style its result</label>
+      <label><input type="radio" name="target" value="other"> Other: describe the tool and contract below</label>
+    </div>
+    <label for="answer">Optional constraints; for an existing dedicated tool, give its reported execution name and a redacted call/output example</label>
+    <textarea id="answer" placeholder="e.g. require no duplicate diagram source in a tool card"></textarea>
+  </article>
+  <button id="copy-export" type="button">Copy export</button>
+  <p id="copy-status" role="status" class="muted"></p>
+</main>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.17.1/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad:false, securityLevel:'strict', flowchart:{htmlLabels:false,useMaxWidth:false,wrappingWidth:240}, sequence:{useMaxWidth:false}, class:{useMaxWidth:false}, state:{useMaxWidth:false}, er:{useMaxWidth:false}, gantt:{useMaxWidth:false} });
+  const diagram = document.querySelector('.mermaid');
+   const initialSource = diagram.dataset.mermaidSource;
+   const activeNodes = { assistant:'fence', tool:'tool', other:'other' };
+   let sequence = 0;
+   let revision = 0;
+   async function render(source) {
+     const current = ++revision;
+     diagram.dataset.mermaidSource = source;
+     try { await mermaid.parse(source); const result = await mermaid.render(`tool-decision-${++sequence}`, source); if (current !== revision) return; diagram.innerHTML = result.svg; diagram.dataset.mermaidState='rendered'; result.bindFunctions?.(diagram); }
+     catch (error) { if (current !== revision) return; diagram.textContent=source; diagram.dataset.mermaidState='error'; console.error(error); }
+   }
+   await render(initialSource);
+   document.querySelectorAll('input[name="target"]').forEach(input => input.addEventListener('change', () => {
+     render(initialSource.replace(/class fence selected;$/, `class ${activeNodes[input.value]} selected;`));
+   }));
+  document.querySelector('#locked').addEventListener('change', event => { document.querySelector('#frontier-lock').dataset.locked=String(event.target.checked); });
+  document.querySelector('#copy-export').addEventListener('click', async () => {
+    const choice=document.querySelector('input[name="target"]:checked').value;
+    const freeText=document.querySelector('#answer').value.trim();
+     const data={schema:1,kind:'grill-session',session_slug:'openchamber-inline-tool',round:1,frontier_locked:document.querySelector('#locked').checked,questions:[{id:'Q1',title:'Should we replace the original extension requirement?',body:'The better multi-diagram UX uses ordinary assistant Markdown; retaining a manifest-only tool extension additionally requires a named tool.',recommended:'Amend scope to documented assistant-response contract with all Mermaid fences and full artifact link',choices:['assistant','tool','other'],choice,free_text:freeText,answer:choice==='other'?freeText:choice,mermaid:diagram.dataset.mermaidSource}]};
+     try { await navigator.clipboard.writeText(JSON.stringify(data,null,2)); document.querySelector('#copy-status').textContent='Copied JSON export.'; }
+     catch { document.querySelector('#copy-status').textContent='Clipboard unavailable.'; }
+  });
+</script>
+</body>
+</html>
