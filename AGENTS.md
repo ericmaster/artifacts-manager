@@ -17,7 +17,8 @@ Multi-project viewer and management hub for agent-generated interactive HTML and
 ## Layout
 
 ```
-bin/artman                           # CLI executable for registering projects & managing artifacts (add, archive, restore, delete)
+bin/artman                           # CLI executable for projects, artifacts and optional setup
+bin/archify-setup.mjs                # Opt-in pinned stable Archify skill installation
 landing/                             # Static landing page & Cloudflare Worker (artifacts-manager.ericmaster.ninja)
 │   ├── index.html                   # Landing page markup with interactive demos & mockups
 │   ├── style.css                    # Nimblersoft Dark design system & animations
@@ -74,6 +75,7 @@ npm run dev
 | `./bin/artman restore <id> [--project <path>]` | Restore an archived artifact to active |
 | `./bin/artman delete <id> [--project <path>]` | Permanently delete an artifact from manifest and disk |
 | `./bin/artman validate --all` | Read-only validation of registered artifact contracts |
+| `./bin/artman setup` | Optional guided Archify skill install; defaults to No, never runs during npm install |
 
 ## Architecture at a glance
 
@@ -84,6 +86,7 @@ npm run dev
 - **Artifact Runtime Contract.** HTML artifacts use Tailwind `3.4.17` and Mermaid `11.17.1` from the exact CDN URLs in ADR-0002. Preserve artifact IDs/files/createdAt during migrations.
 - **Validation.** `artman validate` never writes and reports manifest containment/currentness, runtime URLs, Mermaid fallback syntax, migration identity, and narrow legacy static-SVG warnings. Browser QA must test the sandboxed iframe and reject Mermaid error SVGs/text; SVG presence alone is not success. `vespera:kth-irl-self-evaluation` allowlists only `canvas#radar` plus decorative icon SVGs.
 - **Port Allocation.** Fixed to port `41820` to integrate cleanly into the local development fleet.
+- **Archify setup.** Opt-in `artman setup` fetches the official stable manifest, installs its announced tag for a confirmed agent with `npx skills add`, verifies installed release metadata, then optionally records version/ref in the local machine registry. Existing installs require explicit `--update`; offline/failure leaves the hub usable. See `artman setup --help`.
 
 ## Data model
 

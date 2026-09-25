@@ -15,6 +15,8 @@ npm run dev
 
 Open `http://localhost:41820` in your browser.
 
+Optional: run `./bin/artman setup` to opt into the official Archify agent skill. `npm install` does not install it. The guided prompt defaults to No; see `./bin/artman setup --help` for CI consent, updates and offline retry.
+
 Full setup, commands, and architecture: **[AGENTS.md](AGENTS.md)**.
 
 ## CLI Usage

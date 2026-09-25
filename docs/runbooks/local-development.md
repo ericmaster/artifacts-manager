@@ -11,6 +11,9 @@ cd ~/tools/artifacts-manager
 # Install dependencies
 npm install
 
+# Optional, separate step: guided Archify agent-skill install (defaults to No)
+./bin/artman setup
+
 # Run dev server (default port 41820)
 npm run dev
 
@@ -33,6 +36,8 @@ npm run test:e2e
 ## 2. CLI Tool Usage (`artman` / `artifacts-manager`)
 
 The repo ships with a CLI helper in `./bin/artman`:
+
+Archify is never downloaded or prompted for by `npm install`. `artman setup` asks permission, detects a supported agent when unambiguous, shows the destination and stable version/ref, and asks confirmation before installation. It reads the official stable manifest over the network and uses `npx skills add`; no development/master fallback. Without a TTY it skips unless given explicit `--agent <opencode|claude-code|codex> --yes` consent (for CI use an isolated HOME). Re-running for an installed agent does not update; opt in to replacement with `--update`. If offline, npx/skills missing, manifest invalid or installation fails, the hub still works; fix the reported cause and retry `./bin/artman setup`. Check the destination if the installer failed after writing files. `./bin/artman setup --help` lists options.
 
 ```bash
 # Display help

@@ -36,6 +36,10 @@ The central registry tracks all local workspaces registered with the artifacts m
 3. If `~/.artifacts-manager.json` does not exist, the server creates it on first access.
 4. Non-existent directories on disk are marked with `exists: false` in API responses rather than crashing.
 
+### Optional agent skill setup
+
+`artman setup` is separate from `npm install` and never changes project manifests or the Viewer. Interactive consent defaults to No; without a TTY both `--agent <opencode|claude-code|codex>` and `--yes` are required. A single detected agent is shown for confirmation; no or multiple detected agents require selection. Fetch the official Archify stable manifest, reject non-stable/invalid version, ref or SHA, confirm destination/ref before installation, use the announced GitHub tag with `npx skills add --skill archify --global --agent <agent> --yes`, then compare installed `skill-release.json` with the release metadata at the pinned ref and version. Only verified installs may add optional `archify[agent] = { version, ref }` metadata to the machine registry; it is not used by the Viewer. Existing installs never update without explicit `--update`. Decline, offline or installer failure must not claim success; provide cause and retry advice, without a master fallback.
+
 ---
 
 ## 2. Project Manifest (`<project-root>/.artifacts-manager/manifest.json`)
