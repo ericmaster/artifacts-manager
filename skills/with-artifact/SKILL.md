@@ -327,30 +327,11 @@ When conducting interactive grilling sessions during pre-plan or design workflow
 2. **Dynamic Per-Question Mermaid Slot (`.mermaid-container`):** Decision-tree diagram rendered via ADR-0002 runtime that dynamically updates and highlights the chosen branch when the operator selects different options.
 3. **Choice Selection Options (`.choices`):** Interactive cards/radios for recommended and alternate paths. Every question MUST end with an `Other` option.
 4. **Free-Text Input (`textarea`):** Operator prose area for custom answers and constraints. When `Other` is selected, the free-text value is the authoritative answer; do not restrict the answer to the predefined choices.
-5. **Copy Export (`#copy-export`):** Single action copying the JSON payload (`schema: 1, kind: "grill-session"`).
+5. **Copy Export (`#copy-export`):** Copy minimal answers JSON only, per `docs/specs/with-artifact-skill.md` §2.B: question IDs map to selected input values (`answer`) and non-empty trimmed `free_text`. Preserve `other` plus custom prose separately; omit unanswered questions and include free-text-only questions without `answer`. Never copy question bodies, labels, context, diagrams, or Markdown fences. Invalid/duplicate IDs stop the copy.
 
 #### Export JSON Data Contract:
 ```json
-{
-  "schema": 1,
-  "kind": "grill-session",
-  "session_slug": "<session-slug>",
-  "round": 1,
-  "frontier_locked": true,
-  "questions": [
-    {
-      "id": "Q1",
-      "title": "Successful outcome",
-      "body": "What observable result means this plan succeeded?",
-      "recommended": "Ship the smallest vertical slice that proves the path.",
-      "choices": ["smallest-slice", "full-scope", "other"],
-      "choice": "smallest-slice",
-      "free_text": "",
-      "answer": "smallest-slice",
-      "mermaid": "flowchart TD..."
-    }
-  ]
-}
+{"Q1":{"answer":"smallest-slice","free_text":"Include mobile support."}}
 ```
 
 ---

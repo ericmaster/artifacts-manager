@@ -51,9 +51,8 @@ The `with-artifact` skill instructs an AI coding agent to generate an explanator
   2. **Dynamic per-question Mermaid slot:** Live Mermaid diagram that updates and highlights active paths upon choice selection.
   3. **Choice input:** Every question ends with an `Other` radio/card after its recommended and alternate choices.
   4. **Free-text input:** Textarea for operator notes and rationale. When `Other` is selected, this value is the authoritative answer rather than a restricted option.
-  5. **Copy export:** Single action copying the JSON payload (`schema: 1, kind: "grill-session"`).
-- **Session Export Contract:**
-  JSON payload must include `schema: 1`, `kind: "grill-session"`, `session_slug`, `round`, `frontier_locked`, and an array of `questions` with `id`, `title`, `body`, `recommended`, `choices`, `choice`, `free_text`, `answer`, and `mermaid`. `answer` equals `free_text` when `choice` is `other`; otherwise it equals `choice`.
+  5. **Copy export:** Single action copying minimal answers JSON for pasting into the existing chat.
+- **Clipboard Contract:** JSON only, mapping unique non-empty question IDs to objects with `answer` (selected input's stable `value`) and optional non-empty trimmed `free_text`. Preserve `answer: "other"` alongside custom `free_text`; never duplicate prose into `answer`. Include free-text-only questions without `answer`; omit unanswered questions. Serialize deterministically in document order with JSON escaping. No question bodies, option labels/lists, recommendations, metadata, Mermaid, or Markdown fences. Duplicate or blank/whitespace-bearing IDs fail closed before clipboard writes. This replaces the former full-session export.
 
 ### C. Markdown Artifacts
 - **Rich Document:** Standard Markdown with GitHub alerts (`> [!NOTE]`, `> [!IMPORTANT]`, etc.), tables, code blocks with syntax highlighting, and Mermaid code fences (`mermaid`).

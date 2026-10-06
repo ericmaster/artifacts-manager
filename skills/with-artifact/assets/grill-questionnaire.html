@@ -216,7 +216,7 @@
       <span id="export-status" class="text-sm font-medium text-cyan-400"></span>
     </div>
     <div class="text-xs text-slate-500">
-      Copies JSON answers (<span class="font-mono text-slate-400">schema: 1, kind: grill-session</span>)
+      Copies minimal answers JSON for chat
     </div>
   </footer>
 
@@ -245,41 +245,31 @@
     }
 
     function collect() {
-      const q = document.querySelector(".question");
-      const choice = document.querySelector("input[name='Q1-choice']:checked");
-      const selectedChoice = choice ? choice.value : "";
-      const freeText = document.getElementById("Q1-free") ? document.getElementById("Q1-free").value : "";
-      const mermaidEl = document.getElementById("Q1-mermaid");
-      const currentMermaid = mermaidEl ? (mermaidEl.dataset.mermaidSource || mermaidEl.textContent.trim()) : "";
-
-      return {
-        schema: 1,
-        kind: "grill-session",
-        session_slug: "",
-        round: 1,
-        frontier_locked: lockBox ? lockBox.checked : true,
-        questions: [{
-          id: q ? q.dataset.id : "Q1",
-          title: q && q.querySelector("h2 span:last-child") ? q.querySelector("h2 span:last-child").textContent.trim() : "Successful outcome",
-          body: document.getElementById("Q1-body") ? document.getElementById("Q1-body").textContent.trim() : "",
-          recommended: document.getElementById("Q1-recommended") ? document.getElementById("Q1-recommended").textContent.replace("Recommended:", "").trim() : "",
-          choices: [...document.querySelectorAll("input[name='Q1-choice']")].map((el) => el.value),
-          choice: selectedChoice,
-          free_text: freeText,
-          answer: selectedChoice === "other" ? freeText : selectedChoice,
-          mermaid: currentMermaid
-        }]
-      };
+      const answers = Object.create(null);
+      const ids = new Set();
+      for (const q of document.querySelectorAll(".question")) {
+        const id = q.dataset.id;
+        if (typeof id !== "string" || !id || /\s/.test(id) || ids.has(id)) {
+          throw new Error("Invalid or duplicate question ID");
+        }
+        ids.add(id);
+        const choice = q.querySelector("input:checked");
+        const freeText = q.querySelector("textarea")?.value.trim() || "";
+        if (!choice && !freeText) continue;
+        const answer = {};
+        if (choice) answer.answer = choice.value;
+        if (freeText) answer.free_text = freeText;
+        answers[id] = answer;
+      }
+      return JSON.stringify(answers);
     }
 
     document.getElementById("copy-export").addEventListener("click", async () => {
-      const data = collect();
-      const payload = JSON.stringify(data, null, 2);
-
       try {
+        const payload = collect();
         await navigator.clipboard.writeText(payload);
         const status = document.getElementById("export-status");
-        status.textContent = "✓ Copied JSON answers";
+        status.textContent = "✓ Copied answers";
         setTimeout(() => { status.textContent = ""; }, 4000);
       } catch (err) {
         console.error("Clipboard copy failed:", err);
