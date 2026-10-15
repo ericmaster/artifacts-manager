@@ -40,3 +40,11 @@ Full setup, commands, and architecture: **[AGENTS.md](AGENTS.md)**.
 
 * **Local Hub**: Runs locally as a Node.js process on port `41820`. Details in [AGENTS.md](AGENTS.md).
 * **Landing Page**: [artifacts-manager.ericmaster.ninja](https://artifacts-manager.ericmaster.ninja) (deployed to Cloudflare Workers from `landing/`).
+
+## ☕ Cómprame un café / Buy me a coffee
+
+Si este recurso te sirvió, invítame un café con DeUna (Ecuador). / If this project helped you, you can buy me a coffee via DeUna.
+
+<img src=".github/assets/deuna-qr-300.png" alt="Código QR de DeUna para apoyar a Eric Manuel / DeUna QR code to support Eric Manuel" width="200">
+
+Escanéalo desde la app DeUna o desde la app de tu banco ecuatoriano compatible con DeUna. / Scan it with the DeUna app or a DeUna-enabled Ecuadorian banking app.

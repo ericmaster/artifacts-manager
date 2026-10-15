@@ -1538,3 +1538,19 @@ body {
   color: var(--color-cyan);
 }
 
+
+/* Buy me a coffee (DeUna) */
+.footer-coffee {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 12px;
+}
+.footer-coffee img { border-radius: 8px; background: #fff; flex-shrink: 0; }
+.footer-coffee p { margin: 0.2rem 0; font-size: 0.9rem; }
+.footer-coffee-title { font-weight: 600; }
+.footer-coffee-note { opacity: 0.7; font-size: 0.8rem !important; }
+@media (max-width: 640px) { .footer-coffee { flex-direction: column; text-align: center; } }

@@ -20,6 +20,11 @@
       <p class="footer-note">
         Interactive topology & architecture visualization hub for AI agents.
       </p>
+      <details class="footer-coffee">
+        <summary>☕ Buy me a coffee / Cómprame un café</summary>
+        <img src="/images/deuna-qr-300.png" alt="DeUna QR code to support Eric Manuel" width="150" loading="lazy" />
+        <p>Si este recurso te sirvió, invítame un café con DeUna (Ecuador). Escanéalo con la app DeUna o la app de tu banco ecuatoriano.</p>
+      </details>
     </div>
   </footer>
 </div>
@@ -62,6 +67,22 @@
     color: var(--text-secondary);
     display: flex;
     gap: 0.5rem;
+  }
+
+  .footer-coffee {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .footer-coffee summary {
+    cursor: pointer;
+  }
+
+  .footer-coffee img {
+    display: block;
+    margin: 0.5rem auto;
+    border-radius: 6px;
+    background: #fff;
   }
 
   .footer-note {
