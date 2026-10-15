@@ -22,7 +22,7 @@
       </p>
       <details class="footer-coffee">
         <summary>☕ Buy me a coffee / Cómprame un café</summary>
-        <img src="/images/deuna-qr-300.png" alt="DeUna QR code to support Eric Manuel" width="150" loading="lazy" />
+        <img src="/images/deuna-qr-300.png" alt="DeUna QR code" width="150" loading="lazy" />
         <p>Si este recurso te sirvió, invítame un café con DeUna (Ecuador). Escanéalo con la app DeUna o la app de tu banco ecuatoriano.</p>
       </details>
     </div>
