@@ -5,10 +5,11 @@ Multi-project viewer and management hub for agent-generated interactive HTML and
 > [!IMPORTANT]
 > **AGENTS.md CRITICAL RULES:**
 > **No Fluff:** Minimum characters. Concise but 100% complete.
-> **Current State Only:** Keep this file current. Do not use AGENTS.md, specs, or other
-> non-ADR docs as changelogs, timelines, release notes, or historical change logs. Only
-> `docs/adr/` retains historical decision rationale or superseded choices.
-> **ADR Lifecycle:** Before release, ADRs may be squashed to retain the latest decision; after
+> **Documentation:** Keep specs and non-ADR docs current-state only, except `CHANGELOG.md`.
+> Maintain `CHANGELOG.md` as the release-history SSOT: collect changes under `[Unreleased]`,
+> preserve published release entries, and use actual versions/dates; never invent prior releases.
+> Keep historical decision rationale in `docs/adr/`; use Git and Plane for commit/task detail.
+> **ADR Lifecycle:** Before release, ADRs may be edited, merged, or squashed to retain the latest decision; after
 > release, preserve published ADRs and use a new superseding ADR.
 > **Live Sync:** Keep this file updated with relevant code changes in the same commit.
 > **Context Hygiene:** Apply the `context-hygiene` skill before writing or revising any

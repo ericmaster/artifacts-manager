@@ -31,11 +31,11 @@ Two environments, deliberately separated:
 4. **Cite, don't inline.** When a `docs/` file distills something large, it states the takeaway
    and links back to the full source rather than pasting it in.
 
-5. **Current state, decision history in ADRs.** Specs and all other non-ADR docs describe
-   current truth or reusable guidance; update them in place. Do not use them as changelogs,
-   timelines, release notes, or historical change logs. Only `docs/adr/` retains historical
-   decision rationale or superseded choices. Use Git and Plane for implementation and work-item
-   history rather than mirroring it in docs.
+5. **Current state and release history.** Keep specs and non-ADR docs current-state only,
+   except `CHANGELOG.md`, the release-history SSOT. Collect pending changes under `[Unreleased]`,
+   preserve published release entries, and group them by actual version and release date.
+   Never invent prior releases or unverified changes. Keep historical decision rationale in
+   `docs/adr/`; use Git and Plane for commit/task detail and link instead of copying history.
 6. **ADR lifecycle.** During unreleased work, related ADRs may be edited, merged, or squashed
    to retain the latest decision before release. Once a release is cut, published ADRs are
    historical records: preserve them and record later decisions in a new ADR with `supersedes`.
@@ -67,6 +67,7 @@ artifacts-manager/
 ├── CLAUDE.md                        # Thin pointer to AGENTS.md
 ├── CONTEXT.md                       # Domain glossary
 ├── README.md                        # Human-facing overview
+├── CHANGELOG.md                     # Full release history + unreleased changes
 ├── skills/                          # Shipped agent skills (with-artifact)
 │   └── with-artifact/
 └── docs/
