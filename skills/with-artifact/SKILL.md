@@ -1,6 +1,6 @@
 ---
 name: with-artifact
-description: Generate an explanatory and interactive HTML/MD artifact in the local repository under .artifacts-manager/ to help the user deeply understand system topologies, architectures, refactors, state machines, data schemas, or complex concepts, and register it in Artifacts Manager.
+description: Generate explanatory interactive HTML/MD for architectures, refactors, state machines, data schemas or complex concepts; store and register it in a durable Artifacts Manager project outside source worktrees.
 ---
 
 # With-Artifact (Interactive Explanatory Artifact Generator)
@@ -13,7 +13,7 @@ Use this skill whenever you need to explain, visualize, or guide the user throug
 - **Conceptual Deep-Dives:** Algorithms, protocol handshakes, security threat boundaries.
 - **Grilling & Decision Questionnaires:** Interactive interview worksheets during planning/design sessions (`.artifacts-manager/grill-<session-slug>.html`) featuring frontier locking, dynamic decision-tree diagrams synced to choices, an `Other` choice for custom answers, free-text inputs, and copyable JSON exports.
 
-Artifacts are saved inside the current repository under `.artifacts-manager/`, cataloged in `manifest.json`, registered in `~/.artifacts-manager.json`, and published at `https://artifacts.nimblersoft.com`.
+Artifacts use `.artifacts-manager/` inside a durable registered artifact project, not the current source checkout. Resolve that destination before writing (section 2); publication remains at `https://artifacts.nimblersoft.com`.
 
 ---
 
@@ -46,7 +46,32 @@ HTML is the preferred default. It allows rich vector diagrams, clickable interac
 
 ## 2. Directory & Manifest Contract
 
-All artifacts for a project live in:
+### Resolve storage before generation
+
+Apply `context-hygiene`. In this skill, `<project-root>` means the **artifact
+storage project**, separate from the source checkout. Resolve the existing
+`~/.artifacts-manager.json` entry by stable project identity, not worktree basename.
+Reuse it only if its directory is outside Git worktrees. For a new project, use
+`${XDG_DATA_HOME:-$HOME/.local/share}/artifacts-manager/projects/<project-id>/`.
+The existing CLI/viewer accepts directory roots; no new service is needed.
+
+An existing checkout-backed registration requires explicit migration of its
+complete catalog/assets with verified bytes, stable name/slug/IDs/createdAt and
+consumer links. Do not silently repoint it, create a duplicate slug or modify its
+manifest merely to generate an artifact. Until migrated, stage privately under
+`${XDG_STATE_HOME:-$HOME/.local/state}/<owner>/tasks/<task-id>/artifacts/` and
+report publication pending. Explicitly versioned artifact deliverables are the
+exception; follow their repository contract.
+
+Keep logs, private receipts and raw audit payloads in the owner's private state
+store, not the viewer. External storage is not publication consent: review content
+and destination access before registration. Private staging uses directories 0700
+and files 0600; do not broaden access to make delivery appear successful. After
+registration validate both artifact references and actual viewer access before
+claiming delivery. Keep the source worktree free of generated artifact/manifest
+changes.
+
+All artifacts for a storage project live in:
 ```
 <project-root>/
 └── .artifacts-manager/
@@ -320,7 +345,7 @@ orchestrator --> storage</pre>
 
 ### 4.2 Grilling & Decision Questionnaire Template (`assets/grill-questionnaire.html`)
 
-When conducting interactive grilling sessions during pre-plan or design workflows (`grilling`, `/grill-with-docs`, `planner` agent pre-plan), write or rewrite the session artifact at `.artifacts-manager/grill-<session-slug>.html` seeded from the skill's canonical asset `skills/with-artifact/assets/grill-questionnaire.html`.
+When conducting interactive grilling sessions during pre-plan or design workflows (`grilling`, `/grill-with-docs`, `planner` agent pre-plan), resolve section 2 first, then write or rewrite `.artifacts-manager/grill-<session-slug>.html` relative to that artifact storage project, seeded from the skill's canonical asset `skills/with-artifact/assets/grill-questionnaire.html`.
 
 #### Required Widget Contract:
 1. **Frontier Lock (`#frontier-lock`):** Amber status banner and lock checkbox indicating whether this round's questions are locked.

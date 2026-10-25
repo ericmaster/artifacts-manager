@@ -70,6 +70,20 @@ The `with-artifact` skill instructs an AI coding agent to generate an explanator
 
 ## 3. Storage & Registration Contract
 
+Resolve storage before generation. `project-root` in this contract is the durable
+artifact project root, not a source checkout. The skill's section 2 owns the
+selection procedure: reuse an existing out-of-tree registration; for new projects
+use `${XDG_DATA_HOME:-$HOME/.local/share}/artifacts-manager/projects/<project-id>/`.
+Existing checkout-backed registrations require explicit complete-catalog migration
+with stable URL/metadata and reference checks. Until migrated, use private
+out-of-tree task staging and report publication pending. No duplicate slug,
+silent repoint, or generated source-worktree manifest changes. Explicitly versioned
+deliverables retain their repository contract. Private logs/receipts are not viewer
+artifacts; registration requires content/access review and delivery requires a
+verified viewer response. `structurizr-artifact` follows this storage gate using
+isolated input staging and a private scratch `HOME` (isolating its automatic
+registration) because its generator couples source and output roots.
+
 When creating an artifact:
 1. Write the file into `<project-root>/.artifacts-manager/<artifact-slug>.<html|md>`.
 2. Ensure `<project-root>/.artifacts-manager/manifest.json` exists and append/update the artifact item with:

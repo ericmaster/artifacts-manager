@@ -11,7 +11,15 @@ Use this skill whenever you need to visualize, share, or generate interactive C4
 - **Visual Node Inspector:** Click any element to slide open an inspector panel displaying its technology stack, description, planned/external status, properties, and direct links to source code repositories.
 - **Pan & Zoom Canvas:** Drag to pan, mouse wheel to zoom, with floating on-screen controls (`+`, `-`, `Fit`, `100%`) and keyboard shortcuts (`+`, `-`, `0`, `F`, `Esc`, `?`).
 
-Artifacts are saved inside the target project under `.artifacts-manager/`, cataloged in `manifest.json`, validated with `artman validate`, and viewable at `https://artifacts.nimblersoft.com` or locally at `http://localhost:41820/project/<slug>/artifact/<artifact-id>`.
+Load `with-artifact` section 2 before generation: it owns durable destination,
+privacy and registration rules. This generator couples input/output in `--project`;
+use a private temporary input project containing the required `workspace.dsl` and
+docs. Run it with `HOME=<private-scratch-home>` so its automatic `artman add`
+uses an isolated registry, never the live viewer registry. Transfer only the
+approved artifact through `with-artifact` to the resolved durable artifact project. Do not run the write mode against a source
+worktree. Remove disposable input staging after verified transfer. If an existing
+checkout-backed catalog needs migration, retain private out-of-tree output and
+report publication pending. Validation and viewer URLs remain unchanged.
 
 ---
 

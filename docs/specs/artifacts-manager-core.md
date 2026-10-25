@@ -44,7 +44,7 @@ The central registry tracks all local workspaces registered with the artifacts m
 
 ## 2. Project Manifest (`<project-root>/.artifacts-manager/manifest.json`)
 
-Each registered repository contains an `.artifacts-manager/` folder storing its artifacts and a `manifest.json` catalog.
+Each registered project directory contains an `.artifacts-manager/` folder storing its artifacts and a `manifest.json` catalog. A project directory need not be a Git checkout. New generated content follows the [skill storage gate](with-artifact-skill.md#3-storage--registration-contract); the service still reads existing checkout-backed registrations until explicitly migrated.
 
 ### Schema
 

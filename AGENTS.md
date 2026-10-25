@@ -130,7 +130,7 @@ npm run test:e2e
 
 ## Conventions
 
-- Every artifact file must be placed under `.artifacts-manager/` in its project repository.
+- Generated artifacts use a durable artifact project outside source worktrees; destination, privacy and migration gates: [`with-artifact` storage contract](docs/specs/with-artifact-skill.md#3-storage--registration-contract).
 - Every artifact MUST be cataloged with an entry in `.artifacts-manager/manifest.json`.
 - HTML artifacts MUST be standalone, use only the pinned Tailwind/Mermaid runtime URLs from ADR-0002, and keep all other styling and logic local.
 - Tags must be lowercase, alphanumeric, with hyphens (`[a-z0-9-]+`).

@@ -7,4 +7,6 @@ Earlier unrecorded history remains in Git; do not invent releases or dates.
 
 ### Changed
 
+- Route artifact skills to durable storage outside source worktrees; preserve existing registrations behind explicit migration and private pending-publication gates.
+
 - Allow `CHANGELOG.md` to retain release history while keeping specs and other non-ADR docs current-state only.
