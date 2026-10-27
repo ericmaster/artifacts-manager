@@ -405,6 +405,11 @@ async function main() {
     return;
   }
 
+  if ((cmd === 'add' || cmd === 'validate') && (args.includes('--help') || args.includes('-h'))) {
+    printHelp();
+    return;
+  }
+
   if (cmd === 'list' || cmd === 'ls') {
     await handleList();
   } else if (cmd === 'register') {

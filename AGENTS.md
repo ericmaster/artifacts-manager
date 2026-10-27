@@ -84,6 +84,8 @@ npm run dev
 | `./bin/artman validate --all` | Read-only validation of registered artifact contracts |
 | `./bin/artman setup` | Optional guided Archify skill install; defaults to No, never runs during npm install |
 
+`artman add` and `artman validate` accept `-h`/`--help` without running handlers or writing state; `setup --help` retains setup-specific help.
+
 ## Architecture at a glance
 
 - **Zero-DB File System Contracts.** All state is persisted either in `~/.artifacts-manager.json` (central registry) or in `<project>/.artifacts-manager/manifest.json` (project-scoped artifacts catalog). Decision record: `docs/adr/0001-architecture-and-stack.md`. Spec: `docs/specs/artifacts-manager-core.md`.
